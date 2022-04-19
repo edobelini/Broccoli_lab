@@ -11,14 +11,11 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://sites.google.com/view/molecular-neuroengineering-lab">
-    <img src="logo/logo.png" alt="Logo" width="300" height="300">
-  </a>
-
+  <a href="https://research.hsr.it/en/divisions/neuroscience/stem-cells-and-neurogenesis.html">
   <h3 align="center"> Broccoli Lab </h3>
-
+  </a>
   <p align="center">
-    Molecular NeuroEngineering Laboratory San Raffaele Hospital - CNR-Institute of Neuroscience
+    Stem Cells and Neurogenesis DIBIT2 C1, Floor 4, Room 50A
   </p>
 </p>
 
@@ -29,7 +26,7 @@
   <summary>Table of Contents</summary>
   <ol>
   <li>
-      <a href="#about-the-project">About the project</a>
+      <a href="#about-the-lab">About the lab</a>
     </li>
     <li>
       <a href="#about-the-project">Pipelines</a>
@@ -48,18 +45,15 @@
 
 
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+<!-- ABOUT THE LAB -->
+## About The Lab
 
-Neurological diseases affect profoundly society at every level causing a severe burden to patients and families. Thought the last years have witnessed an unprecedented gain in knowledge on their pathophysiological bases, this has not yet led to a transformation of clinical interventions and their curative potential. In fact, neurological disorders pose additional great challenges hidden in the magnificent complexity of the cellular architecture and relative isolation of the brain tissue and the yet uncompleted understanding of its mechanisms of function. To contribute to overcome these hurdles, we are developing new humanized models of neurological diseases employing the patient iPSC-derived human neural cells, organoids and microfluidic-organized neuronal circuitries. Moreover, we are working in improving gene-based therapies to correct gene mutations and restore correct gene expression in the brain to halt disease progression or even prevent the onset of the pathology. To reach these goals, we are generating novel therapeutic viral capsids, optimizing administration routes and advancing CRISPR/Cas9 gene editing tools for safe and efficient gene repair in neural tissues. These activities are intimately associated to further progress our understanding of the neurological diseases and untangle the early molecular dysfunctions that contribute to pathological progression. On this aspect, we are interested to comprehend the basis of vulnerability of certain neuronal populations to specific diseases and understand the different degrees of plasticity of neuronal cells during aging and cellular reprogramming.
+Our lab has a strong interest in developing novel technologies in stem cells, genetic cell reprogramming and CRISPR/Cas9 gene editing for better modeling and treating neurological disorders. Patient’s derived iPS cells (iPSCs) offer a superior cellular model to recapitulate the key pathophysiological defects underlying the disease. In addition, CRISPR/Cas9 gene-editing provides a fast and efficient system to prove the direct association between a gene mutation and a specific cellular trait. The group has established numerous strategies for direct cell reprogramming to generate induced neuronal and glial cells for accelerating cellular modeling of human disorders. Moreover, we have established iPSCs from patients suffering from various diseases including Dravet, Rett and ASD syndromes, NBIA and Parkinson’s disease. CRISPR/Cas9 gene editing is a crucial tool in the lab to generate isogenic control iPSCs or to introduce targeted gene mutations. Lately, we have conceived and validated new approaches for correcting mutated genes or modulating their expression by CRISPR technology in vitro and in vivo. To vehiculate these tools in the brain and set up strategies of in vivo gene-therapy, this lab is producing new variants of adeno-associated viruses (AAV) that combined high targeting efficiency, tissue spreading and safety.
 
 
 <!-- GETTING STARTED -->
 ## Pipelines
 some to write
-### Prerequisites
-
-To run margheRita you need [R](https://www.r-project.org/) version $\ge$ 3.8
 
 <!-- Pipelines -->
 
@@ -68,11 +62,11 @@ To run margheRita you need [R](https://www.r-project.org/) version $\ge$ 3.8
 ## Contacts
 
 
-Edoardo Bellini
+Edoardo Bellini - <bellini.edoardo@hsr.it>
 
-Mattia Zaghi
+Mattia Zaghi - <zaghi.mattia@hsr.it>
 
-Alessandro Sessa
+Alessandro Sessa - <sessa.alessandro@hsr.it>
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
