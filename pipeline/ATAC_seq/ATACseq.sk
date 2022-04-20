@@ -1,0 +1,373 @@
+# lib
+from snakemake.io import glob_wildcards, expand
+import glob,os
+import pathlib
+import pandas as pd
+#import multiqc
+
+#config
+configfile: "config_ATAC_2.yaml"
+
+#  create log dir
+path = "logs_slurm"
+
+try:
+    os.mkdir(path)
+except OSError:
+    print ("Creation of the directory %s failed" % path)
+else:
+    print ("Successfully created the directory %s " % path)
+
+# ------ sample handling ----------
+# samplesheet file path from config
+SAMPLESHEET=config["SAMPLESHEET"]
+PROJECT=config["Project"]
+# read samplesheet skipping header
+rH = config["skipH"]
+s=pd.read_csv(SAMPLESHEET, skiprows=rH)
+# sample list
+#SAMPLES_ATAC = s.loc[s['Sample_Project'] == PROJECT].Sample_ID.tolist()
+SAMPLES_ATAC = "CtrlH3K27acChIP-Seq2_S189 InputCtrlChIP-Seqs_S182".split()
+# #SAMPLES_ATAC=list(filter(lambda x:'ATAC' in x, SAMPLES_ALL))
+
+RUNID = config["RUN_ID"]
+
+rule all_done:
+    input:
+        "index_done.txt",
+        bw = expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.bw", mysample=SAMPLES_ATAC, myrun=RUNID),
+        peak = expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/{mysample}_peaks.narrowPeak", mysample=SAMPLES_ATAC, myrun=RUNID),
+        bam_md = expand( "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/markdup/{mysample}.bam", mysample=SAMPLES_ATAC, myrun=RUNID),
+        bam_dp = expand( "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/{mysample}.bam", mysample=SAMPLES_ATAC, myrun=RUNID),
+        bam_final = expand( "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist.bam", mysample=SAMPLES_ATAC, myrun=RUNID),
+
+
+
+rule fastq_trimming__:
+    """
+    Trimming with trimmomatic
+    """
+    input:
+        R1       = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/{mysample}_R1_001.fastq.gz", 
+        R2       = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/{mysample}_R2_001.fastq.gz",
+        adapters = config['adapters'] #"adapters/trimmomatic/adapters-pe.fa"
+    output:
+        Paired1       = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_R1_paired.fastq.gz",
+        Paired2       = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_R2_paired.fastq.gz",
+        Unpaired1="/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_R1_unpaired.fastq.gz",
+        Unpaired2="/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_R2_unpaired.fastq.gz"
+    log:
+        main     = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_trim.log",
+        out      = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_trimout.log"
+    params:
+        dir = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/"
+    resources: time_min=50000, mem_mb=120000, cpus=36
+    shell: """
+        mkdir -p {params.dir} 
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/trimmomatic/bin/trimmomatic PE -phred33 {input.R1} {input.R2} {output.Paired1} {output.Unpaired1} {output.Paired2} {output.Unpaired2} ILLUMINACLIP:{input.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 > "{log.out}"
+    """
+
+rule bowtie2__index:
+    """
+    Create bowtie2 index
+    """
+    input:
+        fa = config["ref_genome_fa"]
+    output:
+        done = "index_done.txt"
+    params:
+        index = """/beegfs/scratch/ric.broccoli/ric.broccoli/Genomes/"+config["genome"]+"/annotation/bowtie/"+config["genome"]"""
+    resources: time_min=50000, mem_mb=64000, cpus=36
+    shell:
+        """
+        bowtie2-build {input.fa} --threads {resources.cpus} {params.index}
+        touch {output.done}
+        """
+
+rule bam__bowtie2:
+    """
+    Align reads with bowtie2
+    """
+    input:
+        R1       = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_R1_paired.fastq.gz",
+        R2       = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/{mysample}_R2_paired.fastq.gz",
+        indexdone = "index_done.txt"
+    log:
+        error    = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/{mysample}.log"
+    output:
+        sam = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/{mysample}.sam"
+    params:
+        index    = """/beegfs/scratch/ric.broccoli/ric.broccoli/Genomes/"+config["genome"]+"/annotation/bowtie/"+config["genome"]""",
+        dir      = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2"
+    resources:  name = "bowtie2",time_min = 500000, mem_mb=120000, cpus=36
+    shell:
+        """
+        touch {input.indexdone}
+        
+        mkdir -p {params.dir}
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/bowtie-2/bin/bowtie2 --very-sensitive -x {params.index} -1 {input.R1} -2 {input.R2} -S {output.sam} -p {resources.cpus} > "{log.error}"
+        """
+
+
+rule bam__sorted:
+    """
+    bam sorting
+    """
+    input:
+        sam = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/{mysample}.sam"
+    output:
+        bam = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/{mysample}.bam"
+    resources: name = "samtools", time_min = 4000, mem_mb=48000, cpus=36
+    params:
+        dir = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools"
+    shell:
+        """
+        mkdir -p {params.dir}
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools sort -o {output.bam} -O bam {input.sam}
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools index {output.bam}
+        """
+
+rule bam__markdup:
+    """
+    Markd duplicates
+    """
+    input:
+        sorted = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/{mysample}.bam" 
+    output:
+        markdup = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/markdup/{mysample}.bam",
+        bai   = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/markdup/{mysample}.bam.bai",
+        metrics = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/markdup/{mysample}_markdup_metrics.txt"
+    params:
+        dir = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/markdup",
+        tmp = "/beegfs/scratch/tmp"
+    resources: name = "dedup", time_min = 4000, mem_mb=120000, cpus=36
+    shell:
+        """
+        mkdir -p {params.dir}
+        # mark duplicate
+        java -Xmx120g -jar /beegfs/scratch/ric.broccoli/ric.broccoli/picard.jar MarkDuplicates  I={input.sorted} O={output.markdup} M={output.metrics}    ASSUME_SORTED=coordinate REMOVE_DUPLICATES=false TMP_DIR={params.tmp}
+
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools index {output.markdup}
+        
+        """
+
+
+
+rule bam__dedup:
+    """
+    Remove duplicated
+    """
+    input:
+        markdup = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/{mysample}.bam"
+    output:
+        dedup = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/{mysample}.bam",
+        bai   = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/{mysample}.bam.bai",
+        metrics = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/{mysample}_dedup_metrics.txt"
+    params:
+        dir="/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/",
+        tmp = "/beegfs/scratch/tmp"
+    resources: name = "dedup", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """
+        mkdir -p {params.dir}
+        
+        java -Xmx120g -jar /beegfs/scratch/ric.broccoli/ric.broccoli/picard.jar MarkDuplicates I={input.markdup} O={output.dedup} M={output.metrics} VALIDATION_STRINGENCY=LENIENT ASSUME_SORTED=coordinate REMOVE_DUPLICATES=true TMP_DIR={params.tmp}
+        
+        samtools index {output.dedup}
+        """
+
+rule bam__percMIT:
+    """
+    Assess percentage of reads counted on MT
+    """
+    input:
+        dedup = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/{mysample}.bam"
+    output:
+        MTcount = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/{mysample}_mitCounts.txt"
+    resources:  name = "dedup", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """ 
+        cMIT=$(/beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools view -c {input.dedup} chrM)
+        cALL=$(/beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools view -c {input.dedup}) 
+        sample={wildcards.mysample}
+        echo $/beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools $cMIT $cALL | awk '{{print $1 "\\t" $2 "\\t" $3 "\\t" $2/$3}}' > {output.MTcount} 
+        """
+
+#  Non canonical chromosomes, Y and X unmapped and mitochondrial are removed
+rule bam__filter:
+    """
+    Filter out Non-canonical chromosomes, Y and X  and mitochondrial
+    """
+    input:
+        dedup  = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/{mysample}.bam"
+    output:
+        filter = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}.bam"
+    params:
+        dir    = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter"
+    resources: name = "filter", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """
+        mkdir -p {params.dir}
+        chr_list=""
+        for i in {{1..22;X;Y}} ; do chr_list="$chr_list chr$i"; done
+ 
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools view -b {input.dedup} $chr_list > {output.filter}
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools index {output.filter}
+        """
+
+rule bam__stats:
+    """
+    bam stats
+    """
+    input:
+        bam = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}.bam"
+    output:
+        stats = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}.stats"
+    resources: name = "bamstats", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools flagstat {input.bam} > {output.stats}
+        """
+
+rule bed__bam2bed:
+    """
+    From bam to bed
+    """
+    input:
+        bam = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}.bam"
+    output:
+        bed = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}.bed"
+    resources: name = "bam2bed", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """   
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/bedtools/bin/bedtools bamtobed  -i {input.bam} > {output.bed}
+        """
+
+rule blacklist__download:
+    """
+    Download blacklist
+    """
+     output:
+        gz = config["genome"]+".blacklist.bed.gz",
+        bed = config["genome"]+".blacklist.bed"
+    params:
+        url = config["blacklist_url"] # "http://mitra.stanford.edu/kundaje/akundaje/release/blacklists/hg38-human/hg38.blacklist.bed.gz"
+    resources:  name = "blacklist", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """
+        wget {params.url} 
+        gunzip -c {output.gz} > {output.bed}
+        """
+
+rule bed__blacklist:
+    """
+    Remove blacklisted zone from bed file
+    """
+    input:
+        bed = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}.bed",
+        blacklist  = config["genome"]+".blacklist.bed"
+    output:
+        bed_bl = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist.bed"
+    resources: name = "blacklist_f", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """
+         /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/bedtools/bin/bedtools intersect -v -a {input.bed} -b {input.blacklist} > {output.bed_bl}
+        """
+
+
+rule bed__chrSize:
+    input:
+        fa = config["ref_genome_fa"]
+    output:
+        index = config["ref_genome_fa"]+".fai",
+        genome = config["ref_genome_fa"]+"_chrSize.txt"
+    resources: name = "chrSize", time_min = 50000, mem_mb=120000, cpus=36 
+    shell:
+        """
+        # create region file
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools faidx {input.fa} -o {output.index}
+        
+        awk -v OFS="\t" {{'print $1, $2'}} {{output.index}} | grep -v Un_ | grep -v _alt | grep -v _random | grep -v chrM  > {output.genome}
+
+        """
+
+
+rule bed__bed2bam:
+    input: 
+        bed_bl = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist.bed",
+        genome = config["ref_genome_fa"]+"_chrSize.txt"
+    output:
+        bam_bl = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist.bam",
+        sortbam = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.bam",
+        index = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.bam.bai"
+    params:
+        tmp = "/beegfs/scratch/tmp",
+        gsize = config['genome_size_bp']
+    resources: name = "bed2bam", time_min = 500000, mem_mb=120000, cpus=36 
+    shell:
+        """
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/bedtools/bin/bedtools bedtobam  -i {input.bed_bl} -g {input.genome} > {output.bam_bl}
+
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools sort -O bam -T {params.tmp} -t {resources.cpus} {output.bam_bl}> {output.sortbam}
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools index {output.sortbam} 
+        """
+
+rule bam__stats_filter:
+    input:
+        bam = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.bam"
+    output:
+        stats = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.stats"
+    resources:  name = "bamstats", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/samtools/bin/samtools flagstat {input.bam} > {output.stats}
+        """
+
+
+rule bam__bigWig:
+    input: 
+        bam="/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.bam",
+        blacklist = config["genome"]+".blacklist.bed"
+    output:
+        bw="/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.bw"
+    params:
+        ref_genome_fa   =  config['ref_genome_fa'],
+        # blacklist       =  config['blacklist'],
+        genome_size_bp  = config['genome_size_bp'],
+        mapping_qual_bw = 10
+    resources: name = "bamCoverage", time_min = 50000, mem_mb=120000, cpus=36
+    shell:
+        """
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/deeptools/bin/bamCoverage -b {input.bam} --outFileName {output.bw} --blackListFileName {input.blacklist} --numberOfProcessors {resources.cpus} --effectiveGenomeSize {params.genome_size_bp} --minMappingQuality {params.mapping_qual_bw} --ignoreDuplicates  --binSize 50
+        
+    """
+
+
+rule peak_calling:
+  input:
+    #here I have only treatment
+    treatment = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/{mysample}_bklist_sorted.bam",
+  output:
+    peaks =  "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/{mysample}_peaks.narrowPeak",
+    bed   =  "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/{mysample}_summits.bed"
+  params:
+    #macs2=config['MACS2'],
+    peaks_dir  = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/",
+    gsize      = config['genome_size_bp'],
+    qvalue     = config['peaks_qvalue'],
+    outdir     = "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/"
+  resources: name = "peakcall", time_min = 50000, mem_mb=120000, cpus = 36
+  shell:
+    """
+    mkdir -p {params.peaks_dir}
+    /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/macs2/bin/macs2 callpeak -t {input.treatment} --name {wildcards.mysample} --outdir {params.outdir} --gsize {params.gsize} --BAMPE --qvalue {params.qvalue}
+    
+    """
+
+ 
