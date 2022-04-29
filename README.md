@@ -48,7 +48,7 @@ Our lab has a strong interest in developing novel technologies in stem cells, ge
 <!-- Pipelines -->
 ## Pipelines
 In pipeline folder are present all our lab piplines in snakemake. Within every folder are present:
-* `.sk ` file, that contain all rules sequence.
+* `.sk` file, that contain all rules sequence.
  ```bash 
  head pipeline/Chip_seq/Chipseq.sk
 
@@ -63,7 +63,7 @@ import pandas as pd
 configfile: "config_ATAC_2.yaml"
 ```
 
-* `.yaml `file, that must be edit according to organism and statistics and user needs.
+* `.yaml` file, that must be edit according to organism and statistics and user needs.
  ```bash 
  cat pipeline/Chip_seq/config.yaml
 
@@ -85,7 +85,7 @@ genome_size_bp: 3209286105
 peaks_qvalue: 0.01
 broad_cut_off: 0.001
 ```
-* `.csv ` file conteins all information abount the metadata of the samples such as sample condition, or whatever you need to specify.
+* `.csv` file conteins all information abount the metadata of the samples such as sample condition, or whatever you need to specify.
  ```bash
 cat pipeline/Chip_seq/samplesheet.csv
 
@@ -108,7 +108,7 @@ Lane,Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_I
 
 <!-- SCRIPTS -->
 ## Scripts
-
+In scripts folder are present stand alone script used generally to perform downstream analisys like scRNA-seq clustering, Bulk RNA-seq, or custom plot.
 
 <!-- CONTACT -->
 ## Contacts
