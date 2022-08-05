@@ -1,0 +1,38 @@
+#Custom script used to merge peaks from different replicates for each omic dataset
+#config
+configfile: "config.yaml"
+
+#  create log dir
+path = "logs_slurm"
+
+# ------ sample handling ----------
+GENOME=config["Genome"]
+# ------ sample handling ----------
+SAMPLE = "".split()
+OMIC="".split()
+NUM="".split()
+MERGE="".split()
+
+RUNID = config["RUN_ID"]
+
+
+rule all:
+    input:
+        expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_merge.bed", sample=SAMPLE,omic=OMIC,myrun=RUNID) 
+        
+rule Sort:
+    input:
+        peaks= expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_{num}.bed", sample=SAMPLE,omic=OMIC, num=NUM,myrun=RUNID)
+    output:
+        cat= temp('/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_cat.bed'),
+        sort= temp('/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_sort.bed'),
+        merge= "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{merge}_merge.bed"
+    shell:
+        """
+        cat {input.peaks} > {output.cat} 
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/bedtools/bin/bedtools sort -i {output.cat} > {output.sort}
+        
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/bedtools/bin/bedtools merge -i {output.sort} > {output.merge}
+        
+        """
