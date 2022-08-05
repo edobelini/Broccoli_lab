@@ -70,6 +70,55 @@ Open_chromatin_all_ATAC_SGS <- read_tsv("SETBP1_epigenomics/pipeline/Peaks/multi
   write_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_ATAC_SETBP1_OpenChromatin_table_annotate")
 
 
+#Load multiBigWigSummary containig all annotation of ATAC on NPCs SETV5 inducible line
+
+
+Open_chromatin_all_NPC_SETV5 <- read_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_NPC-SETV5_OpenChromatin_table_annotate", col_names = T) %>% 
+  dplyr::rename(chr=1,
+                start=2,
+                end=3,
+                NPC_NoDoxy=4,
+                NPC_Doxy=5,
+                NPC_NoDoxy_peaks=6,
+                NPC_Doxy_peaks=7) %>% 
+  dplyr::mutate(NPC_NoDoxy_peaks=NPC_NoDoxy_peaks/NPC_NoDoxy_peaks,
+                NPC_Doxy_peaks=NPC_Doxy_peaks/NPC_Doxy_peaks) %>% 
+  mutate_each(funs(replace(., is.na(.), 0))) %>% 
+  write_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_NPC-SETV5_OpenChromatin_table_annotate")
+
+#Load multiBigWigSummary containig all annotation of ATAC on IPSCs SETV5 inducible line
+
+
+Open_chromatin_all_IPSC_SETV5 <- read_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_NPC-SETV5_OpenChromatin_table_annotate", col_names = T) %>% 
+  dplyr::rename(chr=1,
+                start=2,
+                end=3,
+                NPC_NoDoxy=4,
+                NPC_Doxy=5,
+                NPC_NoDoxy_peaks=6,
+                NPC_Doxy_peaks=7) %>% 
+  dplyr::mutate(NPC_NoDoxy_peaks=NPC_NoDoxy_peaks/NPC_NoDoxy_peaks,
+                NPC_Doxy_peaks=NPC_Doxy_peaks/NPC_Doxy_peaks) %>% 
+  mutate_each(funs(replace(., is.na(.), 0))) %>% 
+  write_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_NPC-SETV5_OpenChromatin_table_annotate")
+
+#Load multiBigWigSummary containig all annotation of ATAC on Zebrafish transfected embryos inducible line
+
+Open_chromatin_Zeb_SET <- read_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_ATAC_Zeb_SET_OpenChromatin_table_annotate", col_names = F) %>% 
+  dplyr::rename(chr=1,
+                start=2,
+                end=3,
+                Zeb_GFP=4,
+                Zeb_SET=5,
+                Zeb_GFP_peaks=6,
+                Zeb_SET_peaks=7) %>% 
+  dplyr::mutate(Zeb_GFP_peaks=Zeb_GFP_peaks/Zeb_GFP_peaks,
+                Zeb_SET_peaks=Zeb_SET_peaks/Zeb_SET_peaks) %>% 
+  mutate_each(funs(replace(., is.na(.), 0))) %>% 
+  write_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_ATAC_Zeb_SET_OpenChromatin_table_annotate")
+
+
+
 #Fig.1 d Violin plot H3K27ac in all NPC D868D H3K27ac peaks
 
 Box_plot_NPC_D868D_K27ac_ctrl <- multiBigWigSummary %>% 
@@ -533,9 +582,205 @@ bp <- ggplot(prova, aes(x=Descritpion, y=percentage, fill=Var1))+
                            axis.line = element_line(size = 2),
                            legend.text=element_text(size = 30,family = "Arial"),
                            legend.title = element_text(size = 30,family = "Arial"))+ theme(legend.position = "none")
-                            
+
 ggsave(paste("SETBP1_epigenomics/pipeline/plots/", atac[i], ".png",sep = ""), plot = last_plot(), device = NULL, path = NULL,
          scale = 1, width = 650, height = 205, units = "mm", dpi = 300, limitsize = TRUE) 
 }}
 
+# Fig.S1 i ATAC peaks number in different conditions
+
+genotype <- c("NPCs 
+D868D", "NPCs 
+D868N", "NPCs 
+I871I", "NPCs 
+I871T", "NPCs 
+        TEtON-SETV5 
+    No-Doxy", "NPCs 
+        TEtON-SETV5 
+  Doxy", 
+              "IPSCs 
+        TEtON-SETV5 
+    No-Doxy", "IPSCs 
+        TEtON-SETV5 
+  Doxy", "Zebrafish
+GFP inj.", "Zebrafish
+SET inj.")
+value <- c(89437,73585,65721,53942,74621,59862,125737,89205, 131401, 76584)
+
+
+data <- data.frame(genotype,value)%>%
+  dplyr::mutate( genotype=factor(genotype,levels=c("IPSCs 
+        TEtON-SETV5 
+    No-Doxy", "IPSCs 
+        TEtON-SETV5 
+  Doxy","NPCs 
+D868D", "NPCs 
+D868N", "NPCs 
+I871I", "NPCs 
+I871T", "NPCs 
+        TEtON-SETV5 
+    No-Doxy", "NPCs 
+        TEtON-SETV5 
+  Doxy","Zebrafish
+GFP inj.", "Zebrafish
+SET inj.")))
+
+# Stacked
+ggplot(data, aes(y=value, x=genotype, fill=genotype)) + 
+  geom_bar(stat="identity",width = 0.8,
+           size = 1,position = position_dodge(width = 0.2))+
+  xlab("")+
+  ylab("Number of peaks")+
+  scale_fill_manual(values = c("#404040","#BABABA","#006d2c","#74c476","#006d2c","#74c476","#006d2c","#74c476","#404040","#BABABA"))+
+  scale_color_manual(values=c("#404040","#BABABA","#006d2c","#74c476","#006d2c","#74c476","#006d2c","#74c476", "#404040","#BABABA")) +
+  theme_classic()+
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(legend.position = "none")+
+  theme(axis.text.x = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.text.y = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.title.y = element_text(size = 18,family = "Arial"),
+        axis.line = element_line(size = 1))
+  
+  
+  ggsave("SETBP1_epigenomics/pipeline/plots/Peaks_distro.png", plot = last_plot(), device = NULL, path = NULL,
+         scale = 2, width = 35, height = 15, units = "mm", dpi = 300, limitsize = TRUE)  
+
+# Fig.S1 j ATAC violin plot on SETV5 NPCs 
+
+Violin_plot_ATAC_NPCs_all <- Open_chromatin_all_ATAC_SETV5 %>%
+  dplyr::select(NPC_NoDoxy,NPC_Doxy) %>% 
+  dplyr::rename("NPCs 
+        TeTon-SETV5 
+    No-Doxy"=1,
+                "NPCs 
+        TeTon-SETV5 
+  Doxy"=2) %>% 
+  gather(key=Group, value=RPKM, "NPCs 
+        TeTon-SETV5 
+    No-Doxy","NPCs 
+        TeTon-SETV5 
+  Doxy")
+
+
+Violin_plot_ATAC_NPCs_all$Group <- factor(Violin_plot_ATAC_NPCs_all$Group, levels = c("NPCs 
+        TeTon-SETV5 
+    No-Doxy","NPCs 
+        TeTon-SETV5 
+  Doxy"))
+
+t.test(Violin_plot_ATAC_NPCs_all)
+
+ggplot(Violin_plot_ATAC_NPCs_all) +
+  aes(x = Group, y = log2(RPKM), fill = Group, color = Group) +
+  geom_violin() +
+  scale_fill_manual(values=c("#006d2c","#74c476"))+
+  scale_color_manual(values=c("#006d2c","#74c476")) +
+  ggthemes::theme_base() +
+  xlab('') + 
+  theme(panel.border = element_rect())+
+  theme_classic()+ theme(legend.position = "none") +
+  theme(axis.text.x = element_text(size = 18,family = "Arial"),
+        axis.text.y = element_text(size = 18,family = "Arial"),
+        axis.title.y = element_text(size = 18,family = "Arial"),
+        axis.line = element_line(size = 1))+
+  stat_summary(fun.data = "mean_sdl", geom = "crossbar",
+               mult=1,fill="white",
+               colour = "black", width = 0.05)+
+  stat_compare_means(
+    label = "p.format",
+    method = "wilcox.test",
+    ref.group = "NPCs 
+        TeTon-SETV5 
+    No-Doxy",
+    label.y = 16  #posizione p value
+  )
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Violin_plot_ATAC_NPC_SETV5_all_peaks.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 120, height = 115, units = "mm", dpi = 300, limitsize = TRUE) 
+
+
+# Fig.S1 k ATAC violin plot on SETV5 IPSCs 
+
+Violin_plot_ATAC_IPSCs_all <- Open_chromatin_all_IPSC_SETV5 %>%
+  dplyr::select(IPSC_NoDoxy,IPSC_Doxy) %>% 
+  dplyr::rename("IPSCs 
+        TeTon-SETV5 
+    No-Doxy"=1,
+                "IPSCs 
+        TeTon-SETV5 
+  Doxy"=2) %>% 
+  gather(key=Group, value=RPKM, "IPSCs 
+        TeTon-SETV5 
+    No-Doxy","IPSCs 
+        TeTon-SETV5 
+  Doxy")
+
+Violin_plot_ATAC_IPSCs_Ctrl$Group <- factor(Violin_plot_ATAC_IPSCs_all$Group, levels = c("IPSCs 
+        TeTon-SETV5 
+    No-Doxy","IPSCs 
+        TeTon-SETV5 
+  Doxy"))
+
+ggplot(Violin_plot_ATAC_IPSCs_all) +
+  aes(x = Group, y = log2(RPKM), fill = Group, color = Group) +
+  geom_violin() +
+  scale_fill_manual(values=c("#404040","#BABABA"))+
+  scale_color_manual(values=c("#404040","#BABABA")) +
+  ggthemes::theme_base() +
+  xlab('') + 
+  theme(panel.border = element_rect())+
+  theme_classic()+ theme(legend.position = "none") +
+  theme(axis.text.x = element_text(size = 18,family = "Arial"),
+        axis.text.y = element_text(size = 18,family = "Arial"),
+        axis.title.y = element_text(size = 18,family = "Arial"),
+        axis.line = element_line(size = 1))+
+  stat_summary(fun.data = "mean_sdl", geom = "crossbar",
+               mult=1,fill="white",
+               colour = "black", width = 0.05) +
+  stat_compare_means(
+    label = "p.format",
+    method = "wilcox.test",
+    ref.group = "IPSCs 
+        TeTon-SETV5 
+    No-Doxy",
+    label.y = 16  #posizione p value
+  )
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Violin_plot_ATAC_IPSC_SETV5_all_peaks.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 120, height = 115, units = "mm", dpi = 300, limitsize = TRUE)   
+
+# Fig.S1 l ATAC violin plot on SETV5 Zebrafish
+
+Violin_plot_Zeb_all <- Open_chromatin_Zeb_SET %>%
+  dplyr::select(Zeb_GFP,Zeb_SET) %>% 
+  dplyr::rename("Zebrafish GFP"=1,
+                "Zebrafish SET"=2) %>% 
+  gather(key=Group, value=RPKM, "Zebrafish GFP","Zebrafish SET")
+
+Violin_plot_Zeb_all$Group <- factor(Violin_plot_Zeb_all$Group, levels = c("Zebrafish GFP","Zebrafish SET"))
+
+ggplot(Violin_plot_Zeb_all) +
+  aes(x = Group, y = log2(RPKM), fill = Group, color = Group) +
+  geom_violin() +
+  scale_fill_manual(values=c("#404040","#BABABA"))+
+  scale_color_manual(values=c("#404040","#BABABA")) +
+  ggthemes::theme_base() +
+  xlab('') + 
+  theme(panel.border = element_rect())+
+  theme_classic()+ theme(legend.position = "none") +
+  theme(axis.text.x = element_text(size = 18,family = "Arial"),
+        axis.text.y = element_text(size = 18,family = "Arial"),
+        axis.title.y = element_text(size = 18,family = "Arial"),
+        axis.line = element_line(size = 1))+
+  stat_summary(fun.data = "mean_sdl", geom = "crossbar",
+               mult=1,fill="white",
+               colour = "black", width = 0.05) +
+  stat_compare_means(
+    label = "p.format",
+    method = "wilcox.test",
+    ref.group = "Zebrafish GFP",
+    label.y = 16  #posizione p value
+  )
+ggsave("SETBP1_epigenomics/pipeline/plots/Violin_plot_Zeb_all_peaks.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 120, height = 115, units = "mm", dpi = 300, limitsize = TRUE)  
 
