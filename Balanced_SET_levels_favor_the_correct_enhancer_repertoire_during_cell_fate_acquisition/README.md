@@ -36,7 +36,7 @@
 <!-- About the paper -->
 ## About the paper
 
-In this work we described the effect of SET protein accumulation on chromatin rewiring in vitro, using Schinzel-Giedion syndrome patients IPSCs, and in vivo using Mouse and Zebrafish model. We used a multiomic approach combining ATAC-seq, ChIP-seq, Hi-C, RNA-seq and scMultiome (ATAC+RNA) to address the question on a genomic standpoint. In this page all the codes and pipelines used to analyze all data and produce the manuscript figures are deposited  
+In this work we described the effect of SET protein accumulation on chromatin rewiring in vitro, using Schinzel-Giedion syndrome patients IPSCs, and in vivo using Mouse and Zebrafish model. We used a multiomic approach combining ATAC-seq, ChIP-seq, Hi-C, RNA-seq and scMultiome (ATAC+RNA) to address the question on a genomic standpoint. In this page all the codes and pipelines used to analyze all data and produce the manuscript figures are deposited. (I.E the page is under construction as of now, all the scripts will be uploaded in the next days).
 
 <!-- Pipelines -->
 ## Pipelines
