@@ -40,8 +40,8 @@ In this work we described the effect of SET protein accumulation on chromatin re
 
 <!-- Pipelines -->
 ## Pipelines
-In this folder the snakemake pipeline used to analyzed all the epigenomic data (ATAC, ChIP-seq, Hi-C) are deposited. Within every folder are present:
-* `.sk` file, that contain all rules sequence.
+In this folder the snakemake pipelines used to analyzed all the epigenomic data (ATAC, ChIP-seq, Hi-C) are deposited. Within the folder are present:
+* `.sk` files, that contain all rules sequence.
 
 * `.yaml` file, that must be edit according to organism and statistics and user needs.
 
