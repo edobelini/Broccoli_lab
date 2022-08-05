@@ -10,6 +10,8 @@ library(dplyr)
 library(plyranges)
 library(ChIPseeker)
 library(org.Hs.eg.db)
+library(DESeq2)
+library(Rsubread)
 
 #Load multiBigWigSummary containig all annotation relative to H3K27ac
 
@@ -366,4 +368,84 @@ ggsave("SETBP1_epigenomics/pipeline/plots/Corr_ATAC_H3K7ac_NPC_D868N.png", plot 
 
 
 #Fig.S1 g PCA of ATAC samples NPCs, IPSCs, Zebrafish SGS and inducible SET overexpression lines
+
+#Coverage calculations in peaks using Deseq2
+
+bamsToCount <- dir("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Bowtie2/filtered/PCA/", full.names = TRUE, pattern = "*.\\.bam$")
+
+
+consensusToCount <- read_bed("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Regions/All_IPSC_NPC_merge.bed")
+
+
+regionsToCount <- data.frame(GeneID = paste(seqnames(consensusToCount), 
+                                            start(consensusToCount), end(consensusToCount), sep = "_"), chr = seqnames(consensusToCount), 
+                             start = start(consensusToCount), end = end(consensusToCount), Strand = strand(consensusToCount)) 
+
+
+fcResults <- featureCounts(bamsToCount, annot.ext = regionsToCount, isPairedEnd = TRUE,
+                           countMultiMappingReads = FALSE, maxFragLength = 100,
+                           nthreads = 30)
+
+
+myCounts <- fcResults$counts
+
+colnames(myCounts) <- c("IPSC-SETV5_1","IPSC-SETV5_2","IPSC-SETV5-Doxy_2","IPSC-SETV5-Doxy_2",
+                        "NPC-SETV5_1","NPC-SETV5_2","NPC-SETV5-Doxy_1","NPC-SETV5-Doxy_2",
+                        "NPC_D868D_1","NPC_D868D_2","NPC_D868D_3",
+                        "NPC_D868N_1","NPC_D868N_2","NPC_D868N_3",
+                        "NPC_I871I_1","NPC_I871I_2","NPC_I871I_3",
+                        "NPC_I871T_1","NPC_I871T_2","NPC_I871T_3")
+
+
+
+metaData<- data.frame(Group= c("IPSC-SETV5","IPSC-SETV5","IPSC-SETV5-Doxy","IPSC-SETV5-Doxy",
+                               "NPC-SETV5","NPC-SETV5","NPC-SETV5-Doxy","NPC-SETV5-Doxy",
+                               "NPC_D868D","NPC_D868D","NPC_D868D",
+                               "NPC_D868N","NPC_D868N","NPC_D868N",
+                               "NPC_I871I","NPC_I871I","NPC_I871I",
+                               "NPC_I871T","NPC_I871T","NPC_I871T"),
+                                replicates=c("IPSC-SETV5_1","IPSC-SETV5_2","IPSC-SETV5-Doxy_2","IPSC-SETV5-Doxy_2",
+                                             "NPC-SETV5_1","NPC-SETV5_2","NPC-SETV5-Doxy_1","NPC-SETV5-Doxy_2",
+                                             "NPC_D868D_1","NPC_D868D_2","NPC_D868D_3",
+                                             "NPC_D868N_1","NPC_D868N_2","NPC_D868N_3",
+                                             "NPC_I871I_1","NPC_I871I_2","NPC_I871I_3",
+                                             "NPC_I871T_1","NPC_I871T_2","NPC_I871T_3"))
+
+atacDDS <- DESeqDataSetFromMatrix(myCounts, metaData, design = ~Group, rowRanges = consensusToCount)
+
+atacDDS <- DESeq(atacDDS)
+
+
+#plot PCA
+
+dds <- estimateSizeFactors(atacDDS)
+
+se <- SummarizedExperiment(log2(counts(dds, normalized=TRUE)+1),
+                           colData=colData(dds))
+
+pca <- DESeqTransform( se )
+
+plotPCA(pca ,intgroup = "Group" )+ 
+  geom_point(aes(colour = metaData$Group), size = 0.1) +
+  geom_jitter(width = 0.25)+
+  scale_fill_manual(values=okabe(8))+
+  scale_color_manual(values=okabe(8))+
+  theme_classic()+
+  geom_point(size=0.1)+
+  theme(axis.text.x = element_text(size = 20,family = "Arial"),
+        axis.text.y = element_text(size = 20,family = "Arial"),
+        axis.title.y = element_text(size = 20,family = "Arial"),
+        axis.title.x = element_text(size = 20,family = "Arial"),
+        legend.text = element_text(size = 15,family = "Arial"),
+        axis.line = element_line(size = 0.5))
+
+ggsave("SETBP1_epigenomics/pipeline/plots/PCA.png", plot = last_plot(), device = NULL, path = NULL, width = 120, height = 115, units = "mm", dpi = 300, limitsize = TRUE)  
+
+
+
+# Fig.S1 h ATAC peaks interpolation with available available ChromHMM annotation 
+
+
+
+
 
