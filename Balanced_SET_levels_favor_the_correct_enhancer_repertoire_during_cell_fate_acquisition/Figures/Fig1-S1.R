@@ -445,7 +445,97 @@ ggsave("SETBP1_epigenomics/pipeline/plots/PCA.png", plot = last_plot(), device =
 
 # Fig.S1 h ATAC peaks interpolation with available available ChromHMM annotation 
 
+files <- list.files("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Encode_annotation/Hg38/", pattern = "\\.bed", full.names = T)
+encode <-  lapply(files, read_bed)
+
+files <- list.files("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Regions/Tissue_annotation/", pattern = "\\.bed", full.names = T)
+atac <-  lapply(files, read_bed)
+over_region <- list()
+results <- list()
 
 
+for (i in 1:length(atac)) {
+  for (i in 1:length(encode)) {
+    join <- join_overlap_inner(atac[[i]], encode[[i]]) %>% 
+    as.data.frame()%>% 
+    mutate(Feature=X4,
+           Feature=gsub("1_TssA","Promoter",Feature),
+           Feature=gsub("10_TxEnh5'","Transcribed",Feature),
+           Feature=gsub("11_TxEnh3'","Transcribed",Feature),
+           Feature=gsub("12_TxEnhW","Transcribed",Feature),
+           Feature=gsub("13_EnhA1","Enhancer",Feature),
+           Feature=gsub("14_EnhA2","Enhancer",Feature),
+           Feature=gsub("15_EnhAF","Enhancer",Feature),
+           Feature=gsub("16_EnhW1","Enhancer",Feature),
+           Feature=gsub("17_EnhW2","Enhancer",Feature),
+           Feature=gsub("18_EnhAc","Enhancer",Feature),
+           Feature=gsub("19_DNase","Enhancer",Feature),
+           Feature=gsub("2_PromU","Promoter",Feature),
+           Feature=gsub("20_ZNF/Rpts","ZNF/Rpts",Feature),
+           Feature=gsub("21_Het","Heterochromatin",Feature),
+           Feature=gsub("22_PromP","Promoter",Feature),
+           Feature=gsub("23_PromBiv","Promoter",Feature),
+           Feature=gsub("24_ReprPC","Polycomb",Feature),
+           Feature=gsub("25_Quies","Quiescient",Feature),
+           Feature=gsub("3_PromD1","Promoter",Feature),
+           Feature=gsub("4_PromD2","Promoter",Feature),
+           Feature=gsub("5_Tx5'","Transcribed",Feature),
+           Feature=gsub("6_Tx","Transcribed",Feature),
+           Feature=gsub("7_Tx3'","Transcribed",Feature),
+           Feature=gsub("8_TxWk","Transcribed",Feature),
+           Feature=gsub("9_TxReg","Transcribed",Feature))
+  over_region[[i]] <- join
+  names(over_region)[i] <- names(encode)[i]
+  
+  join_freq <- data.frame(table(join$Feature))
+  join_freq$percentage <- prop.table(join_freq$Freq)*100
+  join_freq$condition <- paste(names(encode)[i])
+  results[[i]] <- join_freq
+  names(results)[i] <-  names(encode)[i]
+
+
+prova <- bind_rows(results, .id = "condition") 
+  
+  
+prova <- filter(prova, prova$condition %in% c("E007", "E009", "E053", "E081", "E073","E023","E025","E018","E019",
+                                              "E031","E113","E038",
+                                              "E37","E035")) %>% 
+    dplyr::rename(Code=4)
+  
+prova <- inner_join(prova, metadata)
+
+prova$Descritpion <- factor(prova$Descritpion, levels = c("Spleen",
+                                            "Primary T helper naive cells from peripheral blood",
+                                            "Primary hematopoietic stem cells",
+                                            "Primary B cells from cord blood",
+                                            "Mesenchymal Stem Cell Derived Adipocyte Cultured Cells",
+                                            "Adipose Derived Mesenchymal Stem Cell Cultured Cells",
+                                            "iPS-15b Cell Line","iPS-18 Cell Line",
+                                            "H9 Derived Neuronal Progenitor Cultured Cells",
+                                            "H1 Derived Neuronal Progenitor Cultured Cells",
+                                            "Cortex derived primary cultured neurospheres",
+                                            "Fetal Brain Male","Brain Dorsolateral Prefrontal Cortex"))
+  
+prova$Var1 <- factor(prova$Var1, levels = c("Quiescient","Heterochromatin","Polycomb","ZNF/Rpts","Enhancer","Transcribed",
+                                            "Promoter"))
+
+bp <- ggplot(prova, aes(x=Descritpion, y=percentage, fill=Var1))+
+    geom_bar( stat="identity",width=0.5, color="white")+
+    scale_fill_manual(values=c("lightblue","#F6CFFC","Gray","#CCFF00","Yellow","Green","Orange Red"))+
+    scale_color_manual(values=c("lightblue","#F6CFFC","Gray","#CCFF00","Yellow","Green","Orange Red"))+
+    ylab("percentage")+
+    xlab('')+
+    coord_flip()+
+    guides(fill=guide_legend(title="chromHMM state")) +
+    theme_classic()+ theme(axis.text.x = element_text(size = 30,family = "Arial"),
+                           axis.text.y = element_text(size = 30,family = "Arial"),
+                           axis.title.x = element_text(size = 30,family = "Arial"),
+                           axis.line = element_line(size = 2),
+                           legend.text=element_text(size = 30,family = "Arial"),
+                           legend.title = element_text(size = 30,family = "Arial"))+ theme(legend.position = "none")
+                            
+ggsave(paste("SETBP1_epigenomics/pipeline/plots/", atac[i], ".png",sep = ""), plot = last_plot(), device = NULL, path = NULL,
+         scale = 1, width = 650, height = 205, units = "mm", dpi = 300, limitsize = TRUE) 
+}}
 
 
