@@ -5,8 +5,6 @@ configfile: "config.yaml"
 path = "logs_slurm"
 
 # ------ sample handling ----------
-# samplesheet file path from config
-PROJECT=config["Project"]
 GENOME=config["Genome"]
 # sample list
 SAMPLES = "".split() #wildcard for general processing of all sample

@@ -1,17 +1,11 @@
 # proj parameters
-Project: "prova_chip_seq"
-skipH: 6
-RAWDATA: "/beegfs/scratch/ric.broccoli/ric.broccoli/prova_chip_seq"
-RUN_ID: "prova_chip_seq" # "RUN_id"
+RAWDATA: "/beegfs/scratch/ric.broccoli/ric.broccoli/Epigenomic_SET"
+RUN_ID: "Epigenomic_SET" # "RUN_id"
 # genome
-genome: "hg38"
-ref_genome_fa: "/beegfs/scratch/ric.broccoli/ric.broccoli/Genomes/hg38/fa/hg38.fa" 
-chrom_sizes: "/beegfs/scratch/ric.broccoli/ric.broccoli/Genomes/hg38/hg38.chrom.sizes"
+Genome: "hg38" # To be chosen based on dataset
+chrom_sizes: "/beegfs/scratch/ric.broccoli/ric.broccoli/Genomes/hg38/hg38.chrom.sizes" #To be chosen based on dataset
 # trimming
-adapters: "/beegfs/scratch/ric.broccoli/ric.broccoli/adapters/NexteraPE-PE.fa"
-# blacklist
-blacklist_url: "http://mitra.stanford.edu/kundaje/akundaje/release/blacklists/hg38-human/hg38.blacklist.bed.gz"
+adapters: "/beegfs/scratch/ric.broccoli/ric.broccoli/adapters/NexteraPE-PE.fa" #To be chosen based on dataset
 # peaks
-genome_size_bp: 3209286105
+genome_size_bp: 3209286105 # To be chosen based on dataset
 peaks_qvalue: 0.01
-broad_cut_off: 0.001
