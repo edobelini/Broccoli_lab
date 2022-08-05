@@ -1,0 +1,26 @@
+#config
+configfile: "config.yaml"
+
+#  create log dir
+path = "logs_slurm"
+
+# ------ sample handling ----------
+SAMPLES = "".split()
+REGIONS="".split()
+
+RUNID = config["RUN_ID"]
+
+rule all:
+    input:
+        table=expand('/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/multiBigWigSummary/multiBigwigSummary_{regions}_table', myrun=RUNID,regions=REGIONS)
+
+rule multiBamSummary:
+    input:
+        bed= expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{regions}.bed", regions=REGIONS, myrun=RUNID),
+        bw= expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/merged/{cells}_merge_RPKM.bw", samples=SAMPLES, myrun=RUNID)
+    output:
+       analysis='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/multiBigWigSummary/multiBigwigSummary_{regions}.npz',
+        table='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/multiBigWigSummary/multiBigwigSummary_{regions}_table'
+    
+    shell:
+        "/beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/deeptools/bin/multiBigwigSummary BED-file --BED {input.bed} --bwfiles {input.bw}  -o {output.analysis} -p 72 --binSize 10 --outRawCounts {output.table}"
