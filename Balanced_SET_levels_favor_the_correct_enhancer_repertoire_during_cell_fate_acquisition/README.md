@@ -1,21 +1,15 @@
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
 
 
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://research.hsr.it/en/divisions/neuroscience/stem-cells-and-neurogenesis.html">
-  <h3 align="center"> Broccoli Lab </h3>
+  <a href=>
+  <h3 align="center"> Balanced SET levels favor the correct enhancer repertoire during cell fate acquisition
+</h3>
   </a>
   <p align="center">
-    Stem Cells and Neurogenesis DIBIT2 C1, Floor 4, Room 50A
+    Mattia Zaghi, Federica Banfi, Luca Massimino, Monica Volpin, Edoardo Bellini, Simone Brusco, Ivan Merelli, Cristiana Barone, Cristina Sironi, Michela Bruni, Giulia Fagnocchi, Alicia Rubio-Garrido, Linda Bossini, Luigi Lamparelli, Laura Pintado, Deborah D'Aliberti, Rocco Piazza, Luca Mologni, Gaia Colasante1, Federica Ungaro, Francesco Ferrari, Jean-Michel Cioni, Emanuele Azzoni, Rocco Piazza, Eugenio Montini, Vania Broccoli and Alessandro Sessa
   </p>
 </p>
 
@@ -26,24 +20,23 @@
   <summary>Table of Contents</summary>
   <ol>
   <li>
-      <a href="#about-the-lab">About the lab</a>
+      <a href="#About the paper">About the paper</a>
   </li>
     <li>
       <a href="#pipelines">Pipelines</a>
     </li>
     <li>
-      <a href="#scripts">Scripts</a>
+      <a href="#figures">Figures</a>
     </li>
-    <li><a href="#contact">Contact</a></li>
   </ol>
 </details>
 
 
 
-<!-- ABOUT THE LAB -->
-## About The Lab
+<!-- About the paper -->
+## About the paper
 
-Our lab has a strong interest in developing novel technologies in stem cells, genetic cell reprogramming and CRISPR/Cas9 gene editing for better modeling and treating neurological disorders. Patient’s derived iPS cells (iPSCs) offer a superior cellular model to recapitulate the key pathophysiological defects underlying the disease. In addition, CRISPR/Cas9 gene-editing provides a fast and efficient system to prove the direct association between a gene mutation and a specific cellular trait. The group has established numerous strategies for direct cell reprogramming to generate induced neuronal and glial cells for accelerating cellular modeling of human disorders. Moreover, we have established iPSCs from patients suffering from various diseases including Dravet, Rett and ASD syndromes, NBIA and Parkinson’s disease. CRISPR/Cas9 gene editing is a crucial tool in the lab to generate isogenic control iPSCs or to introduce targeted gene mutations. Lately, we have conceived and validated new approaches for correcting mutated genes or modulating their expression by CRISPR technology in vitro and in vivo. To vehiculate these tools in the brain and set up strategies of in vivo gene-therapy, this lab is producing new variants of adeno-associated viruses (AAV) that combined high targeting efficiency, tissue spreading and safety. 
+In this work we described the effect of SET protein accumulation on chromatin rewiring in vitro, using Schinzel-Giedion syndrome patients IPSCs, and in vivo using Mouse and Zebrafish model. We used a multiomic approach combining ATAC-seq, ChIP-seq, Hi-C, RNA-seq and scMultiome (ATAC+RNA) to address the question on a genomic standpoint. In this page all the codes and pipelines used to analyze all data and produce the manuscript figures are deposited  
 
 <!-- Pipelines -->
 ## Pipelines
