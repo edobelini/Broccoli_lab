@@ -7,7 +7,134 @@ library(Rsubread)
 library(ggpubr)
 library(LSD)
 
+# Fig.2 a  Genomic distribution of ATAC cluters peaks
 
+
+#NPCs D868D
+
+
+NPC_D868D_cluster1 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_NPCD868D_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_1"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(NPC_D868D_cluster1,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster1.bed")
+
+NPC_D868D_cluster1_annotate <- ChIPseeker::annotatePeak(NPC_D868D_cluster1,
+                                                            tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                            annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster1_annotate.tsv")
+
+
+table(NPC_D868D_cluster1_annotate$Feature)
+
+NPC_D868D_cluster1_pie <- data.frame(table(NPC_D868D_cluster1_annotate$Feature))
+
+NPC_D868D_cluster1_pie$percentage <- prop.table(NPC_D868D_cluster1_pie$Freq)*100
+
+bp<- ggplot(NPC_D868D_cluster1_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster1_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+
+NPC_D868D_cluster2 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_NPCD868D_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_2"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(NPC_D868D_cluster2,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster2.bed")
+
+NPC_D868D_cluster2_annotate <- ChIPseeker::annotatePeak(NPC_D868D_cluster2,
+                                                            tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                            annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster2_annotate.tsv")
+
+
+NPC_D868D_cluster2_pie <- data.frame(table(NPC_D868D_cluster2_annotate$Feature))
+
+NPC_D868D_cluster2_pie$percentage <- prop.table(NPC_D868D_cluster2_pie$Freq)*100
+
+bp<- ggplot(NPC_D868D_cluster2_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster2_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+NPC_D868D_cluster3 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_NPCD868D_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_3"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(NPC_D868D_cluster3,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster3.bed")
+
+
+
+NPC_D868D_cluster3_annotate <- ChIPseeker::annotatePeak(NPC_D868D_cluster3,
+                                                            tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                            annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster3_annotate.tsv")
+
+NPC_D868D_cluster3_annotate_SYMBOL <- read_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster3_annotate.tsv") %>% 
+  dplyr::select(SYMBOL) %>% 
+  unique() %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster3_annotate_SYMBOL.tsv")
+
+
+NPC_D868D_cluster3_pie <- data.frame(table(NPC_D868D_cluster3_annotate$Feature))
+
+NPC_D868D_cluster3_pie$percentage <- prop.table(NPC_D868D_cluster3_pie$Freq)*100
+
+bp<- ggplot(NPC_D868D_cluster3_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster3_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
 
 
 # Fig.2 e Plot density of cluster 3 peaks inside superenhancers
@@ -546,3 +673,665 @@ ggplot(Violin_plot_ATAC_NPCs_Ctrl) +
 
 ggsave("SETBP1_epigenomics/pipeline/plots/Violin_plot_ATAC_NPC_D868_I871_Ctrl_peaks.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 120, height = 115, units = "mm", dpi = 300, limitsize = TRUE)  
+
+
+#Extended data Fig.2 b c d  Genomic distribution of ATAC cluters peaks
+
+#NPCs SETV5
+
+
+NPC_SETV5_No_Doxy_cluster1 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_NPC-SETV5-No_Doxy_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_1"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(NPC_SETV5_No_Doxy_cluster1,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster1.bed")
+
+NPC_SETV5_No_Doxy_cluster1_annotate <- ChIPseeker::annotatePeak(NPC_SETV5_No_Doxy_cluster1,
+                                                        tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                        annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster1_annotate.tsv")
+
+
+table(NPC_SETV5_No_Doxy_cluster1_annotate$Feature)
+
+NPC_SETV5_No_Doxy_cluster1_pie <- data.frame(table(NPC_SETV5_No_Doxy_cluster1_annotate$Feature))
+
+NPC_SETV5_No_Doxy_cluster1_pie$percentage <- prop.table(NPC_SETV5_No_Doxy_cluster1_pie$Freq)*100
+
+bp<- ggplot(NPC_SETV5_No_Doxy_cluster1_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster1_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+NPC_SETV5_No_Doxy_cluster2 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_NPC-SETV5-No_Doxy_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_2"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(NPC_SETV5_No_Doxy_cluster2,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster2.bed")
+
+NPC_SETV5_No_Doxy_cluster2_annotate <- ChIPseeker::annotatePeak(NPC_SETV5_No_Doxy_cluster2,
+                                                        tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                        annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster2_annotate.tsv")
+
+
+NPC_SETV5_No_Doxy_cluster2_pie <- data.frame(table(NPC_SETV5_No_Doxy_cluster2_annotate$Feature))
+
+NPC_SETV5_No_Doxy_cluster2_pie$percentage <- prop.table(NPC_SETV5_No_Doxy_cluster2_pie$Freq)*100
+
+bp<- ggplot(NPC_SETV5_No_Doxy_cluster2_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster2_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+NPC_SETV5_No_Doxy_cluster3 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_NPC-SETV5-No_Doxy_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_3"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(NPC_SETV5_No_Doxy_cluster3,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster3.bed")
+
+
+
+NPC_SETV5_No_Doxy_cluster3_annotate <- ChIPseeker::annotatePeak(NPC_SETV5_No_Doxy_cluster3,
+                                                        tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                        annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster3_annotate.tsv")
+
+NPC_SETV5_No_Doxy_cluster3_annotate_SYMBOL <- read_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster3_annotate.tsv") %>% 
+  dplyr::select(SYMBOL) %>% 
+  unique() %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster3_annotate_SYMBOL.tsv")
+
+
+
+NPC_SETV5_No_Doxy_cluster3_pie <- data.frame(table(NPC_SETV5_No_Doxy_cluster3_annotate$Feature))
+
+NPC_SETV5_No_Doxy_cluster3_pie$percentage <- prop.table(NPC_SETV5_No_Doxy_cluster3_pie$Freq)*100
+
+bp<- ggplot(NPC_SETV5_No_Doxy_cluster3_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_SETV5_No_Doxy_cluster3_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+
+#IPSCs SETV5
+
+IPSC_SETV5_No_Doxy_cluster1 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_IPSC-SETV5-No_Doxy_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_1"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(IPSC_SETV5_No_Doxy_cluster1,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster1.bed")
+
+IPSC_SETV5_No_Doxy_cluster1_annotate <- ChIPseeker::annotatePeak(IPSC_SETV5_No_Doxy_cluster1,
+                                                             tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                             annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster1_annotate.tsv")
+
+
+table(IPSC_SETV5_No_Doxy_cluster1_annotate$Feature)
+
+IPSC_SETV5_No_Doxy_cluster1_pie <- data.frame(table(IPSC_SETV5_No_Doxy_cluster1_annotate$Feature))
+
+IPSC_SETV5_No_Doxy_cluster1_pie$percentage <- prop.table(IPSC_SETV5_No_Doxy_cluster1_pie$Freq)*100
+
+bp<- ggplot(IPSC_SETV5_No_Doxy_cluster1_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster1_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+png("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_Common_peaks_cluster1.png", width= 10, height = 10, res=330, units = "cm")
+makeVennDiagram(list(IPSC_SETV5_No_Doxy_cluster1, IPSC_SETV5_cluster1), NameOfPeaks=c("", ""),scaled=FALSE, euler.d=FALSE, 
+                fill=c("#006d2c", "#74c476"), # circle fill color
+                col=c("#006d2c", "#74c476"), #circle border color
+                cat.col=c("black", "black"))
+dev.off()
+
+IPSC_SETV5_No_Doxy_cluster2 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_IPSC-SETV5-No_Doxy_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_2"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(IPSC_SETV5_No_Doxy_cluster2,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster2.bed")
+
+IPSC_SETV5_No_Doxy_cluster2_annotate <- ChIPseeker::annotatePeak(IPSC_SETV5_No_Doxy_cluster2,
+                                                             tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                             annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster2_annotate.tsv")
+
+
+IPSC_SETV5_No_Doxy_cluster2_pie <- data.frame(table(IPSC_SETV5_No_Doxy_cluster2_annotate$Feature))
+
+IPSC_SETV5_No_Doxy_cluster2_pie$percentage <- prop.table(IPSC_SETV5_No_Doxy_cluster2_pie$Freq)*100
+
+bp<- ggplot(IPSC_SETV5_No_Doxy_cluster2_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster2_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+IPSC_SETV5_No_Doxy_cluster3 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_IPSC-SETV5-No_Doxy_ATAC_merge_50_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_3"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(IPSC_SETV5_No_Doxy_cluster3,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster3.bed")
+
+
+
+IPSC_SETV5_No_Doxy_cluster3_annotate <- ChIPseeker::annotatePeak(IPSC_SETV5_No_Doxy_cluster3,
+                                                             tssRegion=c(-10000, 2000), TxDb=TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene, 
+                                                             annoDb="org.Hs.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster3_annotate.tsv")
+
+IPSC_SETV5_No_Doxy_cluster3_annotate_SYMBOL <- read_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster3_annotate.tsv") %>% 
+  dplyr::select(SYMBOL) %>% 
+  unique() %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster3_annotate_SYMBOL.tsv")
+
+
+
+IPSC_SETV5_No_Doxy_cluster3_pie <- data.frame(table(IPSC_SETV5_No_Doxy_cluster3_annotate$Feature))
+
+IPSC_SETV5_No_Doxy_cluster3_pie$percentage <- prop.table(IPSC_SETV5_No_Doxy_cluster3_pie$Freq)*100
+
+bp<- ggplot(IPSC_SETV5_No_Doxy_cluster3_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/IPSC_SETV5_No_Doxy_cluster3_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+#Zebrafish
+
+Zebrafish_GFP_cluster1 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_Zeb-GFP_ATAC_merge_70_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_1"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(Zebrafish_GFP_cluster1,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster1.bed")
+
+Zebrafish_GFP_cluster1_annotate <- ChIPseeker::annotatePeak(Zebrafish_GFP_cluster1,
+                                                             tssRegion=c(-10000, 2000), TxDb=TxDb.Drerio.UCSC.danRer11.refGene::TxDb.Drerio.UCSC.danRer11.refGene, 
+                                                             annoDb="org.Dr.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster1_annotate.tsv")
+
+
+table(Zebrafish_GFP_cluster1_annotate$Feature)
+
+Zebrafish_GFP_cluster1_annotate_pie <- data.frame(table(Zebrafish_GFP_cluster1_annotate$Feature))
+
+Zebrafish_GFP_cluster1_annotate_pie$percentage <- prop.table(Zebrafish_GFP_cluster1_annotate_pie$Freq)*100
+
+bp<- ggplot(Zebrafish_GFP_cluster1_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster1_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+Zebrafish_GFP_cluster2 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_Zeb-GFP_ATAC_merge_70_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_1"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(Zebrafish_GFP_cluster2,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster2.bed")
+
+Zebrafish_GFP_cluster1_annotate <- ChIPseeker::annotatePeak(Zebrafish_GFP_cluster1,
+                                                             tssRegion=c(-10000, 2000), TxDb=TxDb.Drerio.UCSC.danRer11.refGene::TxDb.Drerio.UCSC.danRer11.refGene, 
+                                                             annoDb="org.Dr.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster2_annotate.tsv")
+
+
+table(Zebrafish_GFP_cluster2_annotate$Feature)
+
+Zebrafish_GFP_cluster2_annotate_pie <- data.frame(table(Zebrafish_GFP_cluster2_annotate$Feature))
+
+Zebrafish_GFP_cluster2_annotate_pie$percentage <- prop.table(Zebrafish_GFP_cluster2_annotate_pie$Freq)*100
+
+bp<- ggplot(Zebrafish_GFP_cluster2_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster2_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+
+Zebrafish_GFP_cluster3 <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/ATAC/pipeline/Compute_Matrix/Peak_centered/Regions/ATAC_in_Zeb-GFP_ATAC_merge_70_median_Compute_Matrix_3_heatmap.bed")%>% 
+  dplyr::filter(deepTools_group==c("cluster_1"))%>% 
+  dplyr::rename(chr=1, start=2, end=3) %>% 
+  makeGRangesFromDataFrame()
+
+write_bed(Zebrafish_GFP_cluster3,"Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster3.bed")
+
+Zebrafish_GFP_cluster3_annotate <- ChIPseeker::annotatePeak(Zebrafish_GFP_cluster1,
+                                                             tssRegion=c(-10000, 2000), TxDb=TxDb.Drerio.UCSC.danRer11.refGene::TxDb.Drerio.UCSC.danRer11.refGene, 
+                                                             annoDb="org.Dr.eg.db") %>% 
+  as_tibble() %>% 
+  dplyr::rename(chr=seqnames,ensembl_gene_id=ENSEMBL) %>% 
+  mutate(Feature=annotation,
+         Feature=gsub(" \\(.*","",Feature),
+         Feature=gsub("Distal Intergenic","Intergenic",Feature),
+         Feature=gsub("3' UTR","Exon",Feature),
+         Feature=gsub("5' UTR","Exon",Feature),
+         Feature=gsub("Downstream","Intergenic",Feature)) %>% 
+  replace(., is.na(.), "0") %>% 
+  write_tsv("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster1_annotate.tsv")
+
+
+table(Zebrafish_GFP_cluster3_annotate$Feature)
+
+Zebrafish_GFP_cluster3_annotate_pie <- data.frame(table(Zebrafish_GFP_cluster3_annotate$Feature))
+
+Zebrafish_GFP_cluster3_annotate_pie$percentage <- prop.table(Zebrafish_GFP_cluster3_annotate_pie$Freq)*100
+
+bp<- ggplot(Zebrafish_GFP_cluster3_pie, aes(x="", y=Freq, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")
+
+pie <- bp + coord_polar("y", start=0)
+
+pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+
+  scale_color_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure3","darkorchid1"))+ theme_void()
+
+ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/Zebrafish_GFP_cluster3_pie.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+#Extended Data Fig.2 e Chromatin state annotation NPCs D868D ATAC clusters
+
+NPC_cluster3 <- read_bed("Setbp1_Gdrive/bench/zaghi/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster3.bed")
+
+
+
+files <- list.files("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Encode_annotation/Hg38/", pattern = "\\.bed", full.names = T)
+encode <-  lapply(files, read_delim, delim="\t", skip = 1, col_names = F) 
+
+names(encode) <- str_split_fixed(as.character(list.files("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Encode_annotation/Hg38/", 
+                                            pattern = "\\.bed", full.names = F)), pattern = "_", 5)[,1]
+
+
+
+over_region <- list()
+results <- list()
+
+for (i in 1:length(encode)) {
+   join <- join_overlap_inner(NPC_cluster3, encode[[i]] ) %>% 
+    as.data.frame()
+  over_region[[i]] <- join
+  names(over_region)[i] <- names(encode)[i]
+  
+  join_freq <- data.frame(table(join$X4))
+  join_freq$percentage <- prop.table(join_freq$Freq)*100
+  join_freq$condition <- paste(names(encode)[i])
+  results[[i]] <- join_freq
+  names(results)[i] <-  names(encode)[i]
+}
+
+prova <- bind_rows(results, .id = "condition") 
+
+
+prova <- filter(prova, prova$condition %in% c("E007", "E009", "E053", "E081", "E073")) %>% 
+  dplyr::rename(Code=4)
+
+prova <- inner_join(prova, metadata)
+
+prova$colour <- c("#FF0000","#C2E105","#C2E105","#FFC34D","#FFC34D","#FFC34D","#FFFF00","#FFFF00","#FFFF00","#FFFF66",
+                         "#FF4500","#66CDAA","#FF4500","#8A91D0","#E6B8B7","#7030A0","#808080","gray90", "#FF4500","#FF4500",
+                         "#008000", "#008000","#008000","#009600", "#C2E105")
+
+prova$Var1 <- factor(prova$Var1, levels = c("1_TssA","2_PromU","3_PromD1",
+                                            "4_PromD2","5_Tx5'","6_Tx",
+                                                          "7_Tx3'","8_TxWk","9_TxReg",
+                                                          "10_TxEnh5'","11_TxEnh3'","12_TxEnhW",
+                                                          "13_EnhA1","14_EnhA2","15_EnhAF",
+                                                          "16_EnhW1","17_EnhW2","18_EnhAc",
+                                                          "19_DNase","20_ZNF/Rpts","21_Het",
+                                                          "22_PromP","23_PromBiv","24_ReprPC",
+                                                          "25_Quies"))
+
+bp <- ggplot(prova, aes(x=Descritpion, y=percentage, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")+
+  scale_fill_manual( values=c("#FF0000","#66CDAA","#FF4500",
+                       "#FF4500","#008000","#008000",
+                       "#008000","#009600","#C2E105",
+                       "#C2E105","#C2E105","#FFC34D",
+                       "#FFC34D","#FFC34D","#FFFF00",
+                       "#FFFF00","#FFFF00","#FFFF66",
+                       "#FF4500","#FF4500","#8A91D0",
+                       "#E6B8B7","#7030A0","#808080",
+                       "gray90"))+
+  scale_color_manual( values=c("#FF0000","#66CDAA","#FF4500",
+                        "#FF4500","#008000","#008000",
+                        "#008000","#009600","#C2E105",
+                        "#C2E105","#C2E105","#FFC34D",
+                        "#FFC34D","#FFC34D","#FFFF00",
+                        "#FFFF00","#FFFF00","#FFFF66",
+                        "#FF4500","#FF4500","#8A91D0",
+                        "#E6B8B7","#7030A0","#808080",
+                        "gray90")) +
+  xlab("")+
+  ylab("percentage")+
+  coord_flip()+
+  guides(fill=guide_legend(title="chromHMM state")) +
+  theme_classic()+ theme(axis.text.x = element_text(size = 34,family = "Arial"),
+          axis.text.y = element_text(size = 34,family = "Arial"),
+          axis.title.x = element_text(size = 34,family = "Arial"),
+          axis.line = element_line(size = 2),
+          legend.text=element_text(size = 34,family = "Arial"),
+          legend.title = element_text(size = 34,family = "Arial")) + theme(legend.position = "none")
+
+bp 
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Cluster_3_encode.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 700, height = 305, units = "mm", dpi = 300, limitsize = TRUE) 
+
+wgEncodeRegTfbsClustered <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Encode_annotation/Hg38/wgEncodeRegTfbsClusteredV3_hg38.bed") %>% 
+  dplyr::rename(chr=1,
+                start=2,
+                end=3,
+                CHIP=4)
+
+CHIP <- as.data.frame(table(wgEncodeRegTfbsClustered$CHIP))
+
+CHIP <- as.character(CHIP$Var1)
+
+NPC_cluster3 <- read_bed("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster3.bed")
+
+pt_res <- list()
+
+ENCODE <- read_tsv("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Encode_annotation/Hg38/wgEncodeRegTfbsClusteredV3_hg38.bed") %>% 
+  dplyr::rename(chr=1,
+                start=2,
+                end=3,
+                CHIP=4)
+
+CHIP <- as.data.frame(table(ENCODE$CHIP))
+
+CHIP <- as.character(CHIP$Var1)
+
+genome <- filterChromosomes(getGenome("hg38")) 
+genome=genome
+
+for (i in 1:length(CHIP)) {
+  ENCODE_F <- ENCODE %>% 
+    dplyr::filter(CHIP==c((paste("",CHIP[i],sep = ""))))%>% 
+    makeGRangesFromDataFrame(keep.extra.columns = T)
+  
+pt <- overlapPermTest(A=NPC_cluster3, B=ENCODE_F, force.parallel=T, min.parallel=10,ntimes=10000, genome=genome)
+  pt_res[[i]] <- data.frame(CHIP_NAME=paste("",CHIP[i],sep = ""),
+                            z_score=pt$numOverlaps$zscore,
+                            p_val=pt$numOverlaps$pval)
+  names(pt_res)[i] <- paste("",CHIP[i],sep = "")
+  print(paste("Making permutation of sample", "",CHIP[i],sep = ""))
+}
+
+
+pt_res_df <- bind_rows(pt_res, .id = "CHIP_NAME") 
+plot(pt_res_df$z_score, pt_res_df$p_val)
+
+NPC_cluster2 <- read_bed("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster2.bed")
+
+over_region <- list()
+results <- list()
+
+for (i in 1:length(encode)) {
+  join <- join_overlap_inner(NPC_cluster2, encode[[i]]) %>% 
+    as.data.frame()
+  over_region[[i]] <- join
+  names(over_region)[i] <- names(encode)[i]
+  
+  join_freq <- data.frame(table(join$X4))
+  join_freq$percentage <- prop.table(join_freq$Freq)*100
+  join_freq$condition <- paste(names(encode)[i])
+  results[[i]] <- join_freq
+  names(results)[i] <-  names(encode)[i]
+}
+
+prova <- bind_rows(results, .id = "condition") 
+
+
+prova <- filter(prova, prova$condition %in% c("E007", "E009", "E053", "E081", "E073")) %>% 
+  dplyr::rename(Code=4)
+
+prova <- inner_join(prova, metadata)
+
+prova$Var1 <- factor(prova$Var1, levels = c("1_TssA","2_PromU","3_PromD1",
+                                            "4_PromD2","5_Tx5'","6_Tx",
+                                            "7_Tx3'","8_TxWk","9_TxReg",
+                                            "10_TxEnh5'","11_TxEnh3'","12_TxEnhW",
+                                            "13_EnhA1","14_EnhA2","15_EnhAF",
+                                            "16_EnhW1","17_EnhW2","18_EnhAc",
+                                            "19_DNase","20_ZNF/Rpts","21_Het",
+                                            "22_PromP","23_PromBiv","24_ReprPC",
+                                            "25_Quies"))
+
+
+bp <- ggplot(prova, aes(x=Descritpion, y=percentage, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")+
+  scale_fill_manual(values=c("#FF0000","#66CDAA","#FF4500",
+                             "#FF4500","#008000","#008000",
+                             "#008000","#009600","#C2E105",
+                             "#C2E105","#C2E105","#FFC34D",
+                             "#FFC34D","#FFC34D","#FFFF00",
+                             "#FFFF00","#FFFF00","#FFFF66",
+                             "#FF4500","#FF4500","#8A91D0",
+                             "#E6B8B7","#7030A0","#808080",
+                             "gray90"))+
+  scale_color_manual(values=c("#FF0000","#66CDAA","#FF4500",
+                              "#FF4500","#008000","#008000",
+                              "#008000","#009600","#C2E105",
+                              "#C2E105","#C2E105","#FFC34D",
+                              "#FFC34D","#FFC34D","#FFFF00",
+                              "#FFFF00","#FFFF00","#FFFF66",
+                              "#FF4500","#FF4500","#8A91D0",
+                              "#E6B8B7","#7030A0","#808080",
+                              "gray90")) +
+  xlab("")+
+  ylab("percentage")+
+  coord_flip()+
+  guides(fill=guide_legend(title="chromHMM state")) +
+  theme_classic()+ theme(axis.text.x = element_text(size = 34,family = "Arial"),
+                         axis.text.y = element_text(size = 34,family = "Arial"),
+                         axis.title.x = element_text(size = 34,family = "Arial"),
+                         axis.line = element_line(size = 2),
+                         legend.text=element_text(size = 34,family = "Arial"),
+                         legend.title = element_text(size = 34,family = "Arial")) + theme(legend.position = "none")
+bp 
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Cluster_2_encode.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 700, height = 305, units = "mm", dpi = 300, limitsize = TRUE) 
+
+NPC_cluster1 <- read_bed("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/NPC_D868D_cluster1.bed")
+
+over_region <- list()
+results <- list()
+
+
+for (i in 1:length(encode)) {
+  join <- join_overlap_inner(NPC_cluster1, encode[[i]]) %>% 
+    as.data.frame()
+  over_region[[i]] <- join
+  names(over_region)[i] <- names(encode)[i]
+  
+  join_freq <- data.frame(table(join$X4))
+  join_freq$percentage <- prop.table(join_freq$Freq)*100
+  join_freq$condition <- paste(names(encode)[i])
+  results[[i]] <- join_freq
+  names(results)[i] <-  names(encode)[i]
+}
+
+prova <- bind_rows(results, .id = "condition") 
+
+
+prova <- filter(prova, prova$condition %in% c("E007", "E009", "E053", "E081", "E073")) %>% 
+  dplyr::rename(Code=4)
+
+prova <- inner_join(prova, metadata)
+
+prova$Var1 <- factor(prova$Var1, levels = c("1_TssA","2_PromU","3_PromD1",
+                                            "4_PromD2","5_Tx5'","6_Tx",
+                                            "7_Tx3'","8_TxWk","9_TxReg",
+                                            "10_TxEnh5'","11_TxEnh3'","12_TxEnhW",
+                                            "13_EnhA1","14_EnhA2","15_EnhAF",
+                                            "16_EnhW1","17_EnhW2","18_EnhAc",
+                                            "19_DNase","20_ZNF/Rpts","21_Het",
+                                            "22_PromP","23_PromBiv","24_ReprPC",
+                                            "25_Quies"))
+
+bp <- ggplot(prova, aes(x=Descritpion, y=percentage, fill=Var1))+
+  geom_bar( stat="identity",width=0.5, color="white")+
+  scale_fill_manual(values=c("#FF0000","#66CDAA","#FF4500",
+                             "#FF4500","#008000","#008000",
+                             "#008000","#009600","#C2E105",
+                             "#C2E105","#C2E105","#FFC34D",
+                             "#FFC34D","#FFC34D","#FFFF00",
+                             "#FFFF00","#FFFF00","#FFFF66",
+                             "#FF4500","#FF4500","#8A91D0",
+                             "#E6B8B7","#7030A0","#808080",
+                             "gray90"))+
+  scale_color_manual(values=c("#FF0000","#66CDAA","#FF4500",
+                              "#FF4500","#008000","#008000",
+                              "#008000","#009600","#C2E105",
+                              "#C2E105","#C2E105","#FFC34D",
+                              "#FFC34D","#FFC34D","#FFFF00",
+                              "#FFFF00","#FFFF00","#FFFF66",
+                              "#FF4500","#FF4500","#8A91D0",
+                              "#E6B8B7","#7030A0","#808080",
+                              "gray90"))+
+  xlab("")+
+  ylab("percentage")+
+  coord_flip()+
+  guides(fill=guide_legend(title="chromHMM state")) +
+  theme_classic()+ theme(axis.text.x = element_text(size = 34,family = "Arial"),
+                         axis.text.y = element_text(size = 34,family = "Arial"),
+                         axis.title.x = element_text(size = 34,family = "Arial"),
+                         axis.line = element_line(size = 2),
+                         legend.text=element_text(size = 34,family = "Arial"),
+                         legend.title = element_text(size = 34,family = "Arial")) + theme(legend.position = "none")
+
+bp 
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Cluster_1_encode.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 700, height = 305, units = "mm", dpi = 300, limitsize = TRUE) 
+
