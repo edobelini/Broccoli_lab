@@ -1,0 +1,13 @@
+IDS = "".split() #Regions of interest for homer analysis
+
+rule all:
+    input:
+        expand("{id}/knownResults.txt", id=IDS) #directory containing results
+
+rule Homer:
+    input:
+        BED= '{id}.bed'#Directory containing Regions of interest for homer analysis
+    output:
+        Motifs='{id}/knownResults.txt'#Directory containing Results
+    shell:
+        "findMotifsGenome.pl {input.BED} mm10 /{directory of results}/{wildcards.id} -size 200 -p 15 -mask -nomotif" #Command line
