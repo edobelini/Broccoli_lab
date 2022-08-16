@@ -358,3 +358,48 @@ ggplot(Expression_distribution_in_loop_distance) +
     label.y = 17  #posizione p value
   )
 
+
+  #Gene Ontology on loop genes 
+
+  gostres <- gost(query = unique(Loop_NPC_D868D_Anchors_TSS_RNA_seq_diff_genes$SYMBOL),
+                                      organism = "hsapiens",
+                                      evcodes = TRUE,
+                                      significant = TRUE,
+                                      correction_method = "fdr",
+                                      user_threshold = 0.05 , sources = c("GO:BP"))
+
+GO <- as.data.frame(gostres$result)
+GO$Perc_of_enrichment <- GO$intersection_size / GO$term_size *100
+GO$Condition <- "All"
+
+GO <- GO %>% 
+  dplyr::mutate(log10_pvalue=-log10(p_value)) %>% 
+  dplyr::rename("Percentage of Enrichment"=17,
+                "-log10 Pvalue"=19) 
+
+write_tsv(GO,"SETBP1_epigenomics/HiC/GO_Loop_NPC_D868D_Anchors_TSS_RNA_seq_diff_genes")
+
+names(GO)GO$`Percentage of Enrichment`
+ggplot(data = GO[c(1:10, 12, 14, 16),], aes(x = Condition, y = reorder(term_name,`Percentage of Enrichment`), color = `-log10 Pvalue`, size = `Percentage of Enrichment`)) +
+  geom_point(stroke = 1)+
+  scale_color_gradient2(low = "grey", mid = "orange", high = "red") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 18, color = 'black',family = "Arial"),
+        axis.text.y = element_text(size = 18, color = 'black', hjust = 1, family="Arial"),
+        axis.title = element_text(size = 18, color = 'black', hjust = 1, family="Arial"),
+        legend.text = element_text(size = 12, color = 'black', hjust = 1, family="Arial"),
+        legend.title = element_text(size = 14, color = 'black', hjust = 1, family="Arial"),
+        panel.background = element_rect(fill = "white",colour = "grey60", size = 0.5, linetype = "solid"),
+        panel.grid.major = element_line(size = 0.05, linetype = 'solid', colour = "grey40"),
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "white"),
+        title = element_text(size = 20, color = 'black', hjust = 1, family="Arial"))+ 
+  coord_fixed(ratio = 1)+
+  ggtitle("GO Biological Processes")+
+  ylab("") +
+  xlab("") 
+
+ggsave(filename = "SETBP1_epigenomics/pipeline/plots/GO_Gene_loop_decreased.png", 
+       scale = 1, width = 60, height = 115, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+
+
