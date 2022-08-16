@@ -497,3 +497,31 @@ ggsave("SETBP1_epigenomics/pipeline/plots/Compartments_length_NPC.png", plot = l
 #Fig.3 Extended Data D Contact domains legth and number 
 
 
+genotype <- c("NPCs D868D","NPCs D868N")
+value <- c( 14168,
+            12815)
+TADs <- data.frame(genotype,value) 
+
+data1 <- TADs                                                 
+data1$genotype <- factor(data1$genotype,                                   
+                         levels = c("NPCs D868D","NPCs D868N"))
+
+ggplot(data1, aes(y=value, x=genotype, fill=genotype)) + 
+  geom_bar(stat="identity",width = 0.8,
+           size = 1,position = position_dodge(width = 0.2))+
+  xlab("")+
+  ylab("Chromatin Loops Number")+
+  scale_fill_manual(values = c("#006d2c","#74c476"))+
+  scale_color_manual(values=c("#006d2c","#74c476")) +
+  theme_classic()+
+  scale_y_continuous(expand = c(0,0)) +
+  theme(legend.position = "none")+
+  theme(axis.text.x = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.text.y = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.title.y = element_text(size = 22,family = "Arial"),
+        axis.line = element_line(size = 1),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 1))
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Loops_number_NPC.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 150, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
