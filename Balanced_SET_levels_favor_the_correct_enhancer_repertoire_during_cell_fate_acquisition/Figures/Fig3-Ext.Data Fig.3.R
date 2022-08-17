@@ -551,7 +551,7 @@ pageCreate(params = p)
 plot <- plotApa(apa =m1,
                 x = p$width/2, y = p$height/2,
                 width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
-                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000)) #plot image was cut & paste by R studio
 
 ## Annotate legend
 annoHeatmapLegend(plot = plot,
@@ -568,7 +568,7 @@ pageCreate(params = p)
 plot <- plotApa(apa =m2,
                 x = p$width/2, y = p$height/2,
                 width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
-                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000)) #plot image was cut & paste by R studio
 
 #Non-Differential loop APA plotting
 
@@ -588,7 +588,7 @@ pageCreate(params = p)
 plot <- plotApa(apa =m1,
                 x = p$width/2, y = p$height/2,
                 width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
-                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000)) #plot image was cut & paste by R studio
 
 ## Annotate legend
 annoHeatmapLegend(plot = plot,
@@ -605,4 +605,120 @@ pageCreate(params = p)
 plot <- plotApa(apa =m2,
                 x = p$width/2, y = p$height/2,
                 width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
-                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000)) #plot image was cut & paste by R studio
+
+
+#Fig.3 Extended Data F Loop length comparison (differential loop vs random subset of unchanged loops of the same number)
+
+
+#load total set of loops with annotation 
+
+
+
+Loop_NPC_D868D_Annotate <- read_delim("SETBP1_epigenomics/pipeline/Peaks/Loop_NPC_D868D_Annotate",
+                                      delim="\t", col_names = T) %>% 
+  dplyr::rename(chr1=1,
+                start1=2,
+                end1=3,
+                intensity_D868D1=6,
+                intensity_D868N1=7,
+                foldchange1=8,
+                distanceToTSS1=17,
+                SYMBOL1=19,
+                Feature1=21,
+                chr2=22,
+                start2=23,
+                end2=24,
+                distanceToTSS2=38,
+                SYMBOL2=40,
+                Feature2=42) %>% 
+  dplyr::select(chr1,
+                start1,
+                end1,
+                intensity_D868D1,
+                intensity_D868N1,
+                foldchange1,
+                distanceToTSS1,
+                SYMBOL1,
+                Feature1,
+                chr2,
+                start2,
+                end2,
+                distanceToTSS2,
+                SYMBOL2,
+                Feature2)
+
+
+#create annotated dataset of unchanged loops and decreased loops
+
+Loop_NPC_D868D_Annotate.bedpe <- Loop_NPC_D868D_Annotate %>% 
+  dplyr::mutate(lenght=end2-start1)
+
+Loop_NPC_D868D_Annotate.bedpe$lenght <- abs(Loop_NPC_D868D_Annotate.bedpe$lenght)
+
+mean(Loop_NPC_D868D_Annotate.bedpe$lenght)
+
+
+Loop_NPC_D868D_Annotate.bedpe_decrease <- Loop_NPC_D868D_Annotate.bedpe %>% 
+  dplyr::filter(foldchange1 <= -1.5)
+
+Loop_NPC_D868D_Annotate.bedpe_decrease$condition <- "Decreased"
+
+Loop_NPC_D868D_Annotate.bedpe_unchanged <- Loop_NPC_D868D_Annotate.bedpe %>% 
+  dplyr::filter(foldchange1 >= -1.5) %>% 
+  dplyr::filter(foldchange1 <= 1.5)
+
+Loop_NPC_D868D_Annotate.bedpe_unchanged$condition <- "Unchanged"
+
+#Create random subsamples of loops with the same dimensione of the decreased loop dataset
+
+Loop_NPC_D868D_Annotate.bedpe_unchanged$id <- 1:nrow(Loop_NPC_D868D_Annotate.bedpe_unchanged)
+
+Random_loop_1 <- Loop_NPC_D868D_Annotate.bedpe_unchanged[Loop_NPC_D868D_Annotate.bedpe_unchanged$id %in%  sample(Loop_NPC_D868D_Annotate.bedpe_unchanged$id, 2978),] %>% 
+  dplyr::rename(lenght_random1=16)
+
+Random_loop_2 <- Loop_NPC_D868D_Annotate.bedpe_unchanged[Loop_NPC_D868D_Annotate.bedpe_unchanged$id %in%  sample(Loop_NPC_D868D_Annotate.bedpe_unchanged$id, 2978),] %>% 
+  dplyr::rename(lenght_random2=16)
+
+Random_loop_3 <- Loop_NPC_D868D_Annotate.bedpe_unchanged[Loop_NPC_D868D_Annotate.bedpe_unchanged$id %in%  sample(Loop_NPC_D868D_Annotate.bedpe_unchanged$id, 2978),] %>% 
+  dplyr::rename(lenght_random3=16)
+
+lenght_loop <- data.frame(Decreased=Loop_NPC_D868D_Annotate.bedpe_decrease$lenght,Random1=Random_loop_1$lenght_random1,
+                          Random2=Random_loop_2$lenght_random2,Random3=Random_loop_3$lenght_random3)
+
+Violin_plot_lenght_loop <- lenght_loop %>%
+  gather(key=Group, value=length, Decreased,Random1,Random2,Random3)
+
+ggplot(Violin_plot_lenght_loop) +
+  aes(x = Group, y = length, fill = Group, color = Group) +
+  geom_violin() +
+  scale_fill_manual(values=c("#404040","#BABABA","#BABABA","#BABABA"))+
+  scale_color_manual(values=c("#404040","#BABABA","#BABABA","#BABABA")) +
+  ggthemes::theme_base() +
+  xlab('') + 
+  ylab('Anchors distance in KB')+
+  theme(panel.border = element_rect())+                                    # Change decimal comma / point  
+  scale_y_continuous(labels = scales::comma_format(big.mark = ".",
+                                                   decimal.mark = ","))+
+  theme(panel.border = element_rect())+
+  theme_classic()+ theme(legend.position = "none") +
+  theme(axis.text.x = element_text(size = 18,family = "Arial"),
+        axis.text.y = element_text(size = 18,family = "Arial"),
+        axis.title.y = element_text(size = 18,family = "Arial"),
+        axis.line = element_line(size = 1))+
+  stat_summary(fun.data = "mean_sdl", geom = "crossbar",
+               mult=1,fill="white",
+               colour = "black", width = 0.05) +
+  stat_compare_means(
+    label = "p.format",
+    method = "wilcox.test",
+    ref.group = "Decreased",
+    label.y = 6500000  #posizione p value
+  )
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Loop_dimension_random_unchanged.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 200, height = 195, units = "mm", dpi = 300, limitsize = TRUE)   
+
+
+
+
