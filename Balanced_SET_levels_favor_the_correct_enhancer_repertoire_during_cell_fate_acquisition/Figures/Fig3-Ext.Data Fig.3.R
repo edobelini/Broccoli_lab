@@ -670,7 +670,7 @@ Loop_NPC_D868D_Annotate.bedpe_unchanged <- Loop_NPC_D868D_Annotate.bedpe %>%
 
 Loop_NPC_D868D_Annotate.bedpe_unchanged$condition <- "Unchanged"
 
-#Create random subsamples of loops with the same dimensione of the decreased loop dataset
+#Create random subsamples of loops with the same dimensione of the decreased loop dataset and plot 
 
 Loop_NPC_D868D_Annotate.bedpe_unchanged$id <- 1:nrow(Loop_NPC_D868D_Annotate.bedpe_unchanged)
 
