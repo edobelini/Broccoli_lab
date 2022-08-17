@@ -4,7 +4,9 @@ library(dplyr)
 library(plyranges)
 library(diffloop)
 library(LSD)
-
+library(hictoolsr)
+library(plotgardener)
+library(pheatmap)
 
 #Fig.3 c plot of relation between interaction frequency and distance in NPCs D868D
 
@@ -494,7 +496,7 @@ ggplot(TAD_length_NPC) +
 ggsave("SETBP1_epigenomics/pipeline/plots/Compartments_length_NPC.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 150, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
 
-#Fig.3 Extended Data D Contact domains legth and number 
+#Fig.3 Extended Data D Loop number 
 
 
 genotype <- c("NPCs D868D","NPCs D868N")
@@ -525,3 +527,82 @@ ggplot(data1, aes(y=value, x=genotype, fill=genotype)) +
 
 ggsave("SETBP1_epigenomics/pipeline/plots/Loops_number_NPC.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 150, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+#Fig.3 Extended Data E APA plots in different loops subset 
+
+
+#Differential loop APA plotting 
+
+## Create divergent matrix ####
+m <- matrix(data = rnorm(n = 21*21, mean = 0, sd = 2), nrow = 21, ncol = 21)
+m1 <- read.csv("/home/zaghi/Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Hi-C/hg38_HiC/APA/NPC_D868D_diff/5000/gw/APA.txt", header=FALSE) %>% 
+  as.matrix()
+m2 <- read.csv("/home/zaghi/Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Hi-C/hg38_HiC/APA/NPC_D868D_diff/D868N/5000/gw/APA.txt", header=FALSE) %>% 
+  as.matrix()
+log2(m1)
+## Define parameters
+p <- pgParams(width = 3, height = 3, default.units = "inches")
+
+## Create page
+pageCreate(params = p)
+
+## Plot apa
+plot <- plotApa(apa =m1,
+                x = p$width/2, y = p$height/2,
+                width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
+
+## Annotate legend
+annoHeatmapLegend(plot = plot,
+                  x = 4, y = 0.75, width = 0.1, height = 0.75)
+
+## Define parameters
+p <- pgParams(width = 3, height = 3, default.units = "inches")
+
+## Create page
+pageCreate(params = p)
+
+
+## Plot apa
+plot <- plotApa(apa =m2,
+                x = p$width/2, y = p$height/2,
+                width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
+
+#Non-Differential loop APA plotting
+
+m <- matrix(data = rnorm(n = 21*21, mean = 0, sd = 2), nrow = 21, ncol = 21)
+m1 <- read.csv("/home/zaghi/Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Hi-C/hg38_HiC/APA/NPC_D868D_no_diff/5000/gw/APA.txt", header=FALSE) %>% 
+  as.matrix()
+m2 <- read.csv("/home/zaghi/Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Hi-C/hg38_HiC/APA/NPC_D868D_no_diff/D868N/5000/gw/APA.txt", header=FALSE) %>% 
+  as.matrix()
+log2(m1)
+## Define parameters
+p <- pgParams(width = 3, height = 3, default.units = "inches")
+
+## Create page
+pageCreate(params = p)
+
+## Plot apa
+plot <- plotApa(apa =m1,
+                x = p$width/2, y = p$height/2,
+                width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
+
+## Annotate legend
+annoHeatmapLegend(plot = plot,
+                  x = 4, y = 0.75, width = 0.1, height = 0.75)
+
+## Define parameters
+p <- pgParams(width = 3, height = 3, default.units = "inches")
+
+## Create page
+pageCreate(params = p)
+
+
+## Plot apa
+plot <- plotApa(apa =m2,
+                x = p$width/2, y = p$height/2,
+                width = p$width*0.5, height = p$width*0.5, just = c("center", "center"),
+                palette = colorRampPalette(c("blue","white","red")), zrange = c(0,100000))
