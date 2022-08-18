@@ -1,0 +1,50 @@
+#config
+configfile: "config.yaml"
+
+#  create log dir
+path = "logs_slurm"
+
+# ------ sample handling ----------
+BED="".split() # Regions on which to perform heatmaps and profiles plot
+CHIP="".split() # Bigwig tracks to plot
+STAT="".split()# Value to plot
+ZMAX= "".split() # Max Value to plot in heatmaps
+KMEANS="".split() # Number of Kmeans to plot into heatmaps 
+RUNID = config["RUN_ID"]
+
+rule all:
+    input:
+        expand('/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{stat}_Compute_Matrix_profile.png',bed=BED,chip=CHIP,stat=STAT, myrun=RUNID),
+        expand('/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{zmax}_{stat}_Compute_Matrix_{kmeans}_heatmap.png', bed=BED,chip=CHIP,stat=STAT, myrun=RUNID, kmeans=KMEANS,zmax=ZMAX)
+        
+rule Compute_Matrix:
+    input:
+        bigwig1='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/merged/GroupBigWigs/ctrl/Clusters/ExN_UL-TileSize-100-normMethod-ReadsInTSS-ArchR.bw',
+        bigwig2='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/merged/GroupBigWigs/mut/Clusters/ExN_UL-TileSize-100-normMethod-ReadsInTSS-ArchR.bw',
+        BED= '/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/da_edo/ctrl/{bed}.bed'
+    output:
+        Compute_Matrix='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{stat}_Compute_Matrix'
+    shell:
+        "/beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/deeptools/bin/computeMatrix reference-point -S {input.bigwig1} {input.bigwig2}  -R {input.BED} -o {output.Compute_Matrix} -a 3000 -b 3000 -p 72 --averageTypeBins {wildcards.stat} --referencePoint center"
+        
+
+rule Plot_profile_automax:
+    input:
+        Compute_Matrix='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{stat}_Compute_Matrix'
+    output:
+        profile_automax="/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{stat}_Compute_Matrix_profile.png"
+    shell:
+        """
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/deeptools/bin/plotProfile --matrixFile {input.Compute_Matrix} --outFileName {output.profile_automax} --dpi 300 --averageType {wildcards.stat} --plotWidth 7.5 --perGroup --colors '#404040' '#BABABA'  --samplesLabel '' '' --startLabel "5'" --endLabel "3'" --regionsLabel '{wildcards.chip} in {wildcards.bed}'
+        """
+        
+rule Plot_heatmap_kmeans: #this is the code used to obtain clusters of differential chromatin accessibility in different samples and cell types
+    input:
+        Compute_Matrix='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{stat}_Compute_Matrix'
+    output:
+        Heatmap_kmeans="/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{zmax}_{stat}_Compute_Matrix_{kmeans}_heatmap.png",
+        Heatmap_bed= "/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{zmax}_{stat}_Compute_Matrix_{kmeans}_heatmap.bed"
+    shell:
+        """
+        /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/deeptools/bin/plotHeatmap --matrixFile {input.Compute_Matrix} --outFileName {output.Heatmap_kmeans} --heatmapWidth 3.5 --heatmapHeight 20 --dpi 300 --sortRegions no --averageTypeSummaryPlot {wildcards.stat} --kmeans {wildcards.kmeans}  --refPointLabel center --colorMap Greys  --missingDataColor  lightgrey --whatToShow  'heatmap and colorbar' --samplesLabel "D868D" "D868N"  --startLabel "5'" --endLabel "3'" --legendLocation none --outFileSortedRegions  {output.Heatmap_bed}  --zMax {wildcards.zmax} 
+        """
