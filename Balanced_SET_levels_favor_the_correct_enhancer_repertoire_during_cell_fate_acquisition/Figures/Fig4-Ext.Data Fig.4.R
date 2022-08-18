@@ -1,7 +1,10 @@
 library(dplyr)
 library(tidyverse)
 library(ggpubr)
-
+library(chromVAR)
+library(motifmatchr)
+library(Matrix)
+library(pheatmap)
 
 
 #Load Table containing all annotation relative to NPCs and Neurons from SGS patient line D868 as obtained and presented in Fig.1
@@ -260,7 +263,19 @@ ggsave("SETBP1_epigenomics/pipeline/plots/Violin_plot_peaks_ATAC_D868N_Peaks_neu
        scale = 1, width = 150, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
 
 
-#Fig 4 C ChromVar Tsne plots
+#Fig 4 C ChromVar Tsne plots (Using ChromVar data calculated in the Relative R script)
+
+#tSNE plots of samples
+tsne_plots <- plotDeviationsTsne(dev_Neu, tsne_results, #dev_Neu calculated using the ChromVar script in the Epigenomics folder 
+                                 sample_column = "celltype", shiny = FALSE)
+
+
+tsne_plots
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Tsne_chromVAR_updev.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 200, height = 115, units = "mm", dpi = 300, limitsize = TRUE)
+
+#tSNE plots of samples
 
 
 
