@@ -275,8 +275,28 @@ tsne_plots
 ggsave("SETBP1_epigenomics/pipeline/plots/Tsne_chromVAR_updev.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 200, height = 115, units = "mm", dpi = 300, limitsize = TRUE)
 
-#tSNE plots of samples
+#tSNE plots of samples with associated deviations score of a specifc TFBS
 
+#NR2F1
+
+tsne_plots_NR2F1 <- plotDeviationsTsne(dev_Neu, tsne_results, annotation = "NR2F1", #dev_Neu calculated using the ChromVar script in the Epigenomics folder
+                                 sample_column = "celltype", shiny = FALSE)
+
+tsne_plots_NR2F1
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Tsne_chromVAR_updev_NR2F1.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 200, height = 115, units = "mm", dpi = 300, limitsize = TRUE)
+
+#EMX1
+
+
+tsne_plots_EMX1 <- plotDeviationsTsne(dev_Neu, tsne_results, annotation = "EMX1", #dev_Neu calculated using the ChromVar script in the Epigenomics folder
+                                 sample_column = "celltype", shiny = FALSE)
+
+tsne_plots_EMX1
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Tsne_chromVAR_updev_NR2F1.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 200, height = 115, units = "mm", dpi = 300, limitsize = TRUE)
 
 
 
