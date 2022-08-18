@@ -299,6 +299,62 @@ ggsave("SETBP1_epigenomics/pipeline/plots/Tsne_chromVAR_updev_NR2F1.png", plot =
        scale = 1, width = 200, height = 115, units = "mm", dpi = 300, limitsize = TRUE)
 
 
+#Fig 4 D Loop anchors contact strength dynamic changes during Neural differentation
 
+#Loop strength plot NPCs D868D vs Neu D868D (Data calculated as in the Loop_strength_caculation_Neuro_dev.R script)
+
+png(filename = "SETBP1_epigenomics/pipeline/plots/Loop_strenght_all_Neu_D868D_vs_NPC_D868D.png", width = 25, height = 25, res = 720, units = "cm")
+heatscatter(x=Loop_NPC_D868D_vs_Neu_D868D_all_loops$intensity_NPC_D868D,y=Loop_NPC_D868D_vs_Neu_D868D_all_loops$intensity_Neu_D868D, 
+            colpal="bl2gr2rd", 
+            main="", 
+            cor=FALSE,
+            xlab = "log2(Obs/ExpBL) NPC D868D", 
+            ylab = "log2(Obs/ExpBL) Neu D868D",
+            ylim = c(-1,15),
+            xlim = c(-1,15),
+            #only = "x",
+            cexplot = 0.6, 
+            nrcol = 100,  
+            grid = 100)+
+  abline(a = 0, b = 1, lwd=3, lty=2)
+dev.off()
+
+Loops_1.5fold_piecharts <- data.frame(Modification= c('Decreased','Increased','Unchanged'),
+                                      value=c(15.45,28.24,56.31))
+
+ggplot(Loops_1.5fold_piecharts, aes(x="", y=value, fill=Modification)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)+
+  theme_void()
+ggsave("SETBP1_epigenomics/pipeline/plots/Loops_1.5fold_piecharts_Neu_vs_NPC_D868D.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 80, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
+
+#Loop strength plot NPCs D868N vs Neu D868N (Data calculated as in the Loop_strength_caculation_Neuro_dev.R script)
+
+png(filename = "SETBP1_epigenomics/pipeline/plots/Loop_strenght_all_Neu_D868N_vs_NPC_D868N.png", width = 25, height = 25, res = 720, units = "cm")
+heatscatter(x=Loop_NPC_D868N_vs_Neu_D868N_all_loops$intensity_NPC_D868N,y=Loop_NPC_D868N_vs_Neu_D868N_all_loops$intensity_Neu_D868N, 
+            colpal="bl2gr2rd", 
+            main="", 
+            cor=FALSE,
+            xlab = "log2(Obs/ExpBL) NPC D868N", 
+            ylab = "log2(Obs/ExpBL) Neu D868N",
+            ylim = c(-1,15),
+            xlim = c(-1,15),
+            #only = "x",
+            cexplot = 0.6, 
+            nrcol = 100,  
+            grid = 100)+
+  abline(a = 0, b = 1, lwd=3, lty=2)
+dev.off()
+
+Loops_1.5fold_piecharts <- data.frame(Modification= c('Decreased','Increased','Unchanged'),
+                                      value=c(6.80,33.23,59.97))
+
+ggplot(Loops_1.5fold_piecharts, aes(x="", y=value, fill=Modification)) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)+
+  theme_void()
+ggsave("SETBP1_epigenomics/pipeline/plots/Loops_1.5fold_piecharts_Neu_vs_NPC_D868N.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 80, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
 
 
