@@ -1013,3 +1013,325 @@ pie + scale_fill_manual(values=c("orange","salmon2","aquamarine3","cyan2","azure
 ggsave("Setbp1_Gdrive/zaghi_upload/setbp1/Regions/Heatmap_clusters/dir_Neu_D868D_cluster3_pie.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 100, height = 75, units = "mm", dpi = 300, limitsize = TRUE)
 
+
+#Fig. Extended Data 4 c Subsetting differential peaks for Venn diagram 
+
+Open_chromatin_all_ATAC_SGS <- read_tsv("SETBP1_epigenomics/pipeline/Peaks/multiBigwigSummary_ATAC_SETBP1_OpenChromatin_table_annotate", col_names = T) # Upload tables with peaks annotation and counts (multiBigWigSummary_annotation.sk & multiBigWigSummary_editing.R)
+
+
+ATAC_Common_Peaks_neural_development_down_HiC <- Open_chromatin_all_ATAC_SGS %>%
+  dplyr::filter(Neu_D868D_down_dev==1 & Neu_D868N_down_dev==1)
+
+ATAC_D868D_neural_development_down_HiC <- Open_chromatin_all_ATAC_SGS %>%
+  dplyr::filter(Neu_D868D_down_dev==1 & Neu_D868N_down_dev==0)
+
+ATAC_D868N_neural_development_down_HiC <- Open_chromatin_all_ATAC_SGS %>%
+  dplyr::filter(Neu_D868D_down_dev==0 & Neu_D868N_down_dev==1)
+
+
+#Fig. Extended Data 4 d Heatmaps ChromVar subset of TFBS and RNA expression
+
+#TFBS more accessible in Neu D868D
+
+Neu_all_peaks_statistical_significance <- read_tsv("SETBP1_epigenomics/pipeline/ChromVar/Neu_all_peaks_statistical_significance_table") # Calculated in ChromVar.R script 
+
+
+metadata = data.frame(condition = names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)],
+                      samples = str_split_fixed(names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)], "_", 2)[,1],
+                      stringsAsFactors = T, row.names=names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)])
+
+suppressMessages(library(RColorBrewer))
+suppressMessages(library("viridis"))
+
+annotation_column <- metadata[,1:(dim(metadata)[2])]
+mycolors_s <- c("white", "white"); names(mycolors_s) = levels(annotation_column$samples)
+mycolors_c <- c("#08519c", "#6baed6","#006d2c","#74c476"); names(mycolors_c) = levels(annotation_column$condition)
+ann_colors = list(condition=mycolors_c, samples=mycolors_s)
+crp <- colorRampPalette(c('blue','white','red'))
+colors = crp(255)
+
+to_H <- Neu_all_peaks_statistical_significance %>% 
+  dplyr::filter(Neu_D868D >= NPC_D868D) %>% 
+  dplyr::filter(NPC_D868N<=7) %>% 
+  as.data.frame()
+
+metadata = data.frame(condition = names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)],
+                      samples = str_split_fixed(names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)], "_", 2)[,1],
+                      stringsAsFactors = T, row.names=names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)])
+
+suppressMessages(library(RColorBrewer))
+suppressMessages(library("viridis"))
+
+annotation_column <- metadata[,1:(dim(metadata)[2])]
+mycolors_s <- c("white", "white"); names(mycolors_s) = levels(annotation_column$samples)
+mycolors_c <- c("#08519c", "#6baed6","#006d2c","#74c476"); names(mycolors_c) = levels(annotation_column$condition)
+ann_colors = list(condition=mycolors_c, samples=mycolors_s)
+
+
+TF_cluster_no_down <- to_H  %>% 
+  write_delim("SETBP1_epigenomics/pipeline/ChromVar/TF_cluster_no_up_in_neu",
+              delim="\t",col_names = T)
+
+to_H$SYMBOL <- str_split_fixed(to_H$Motif, "_", 2)[,2]
+
+to_H <- inner_join(to_H,to_H_RNA, by="SYMBOL")
+to_H$Motif <- str_split_fixed(to_H$Motif.x, "_", 2)[,2]
+rownames(to_H) <- to_H[,69]
+
+to_H$Motif<- NULL
+
+to_H <- to_H[c(4:5,12:13)]
+
+to_H <- to_H[, c(1, 3, 2, 4)]
+
+to_H <- to_H %>% 
+  dplyr::rename(NPC_D868D=1,
+                Neu_D868D=2,
+                NPC_D868N=3,
+                Neu_D868N=4)
+
+library(ArchR)
+
+colors <- paletteContinuous(set = "solarExtra")
+
+
+
+h1 <- pheatmap(as.matrix(to_H), annotation_col = annotation_column,border_color = "white",cluster_cols = F,
+               annotation_colors = ann_colors, col=colors, annotation_names_col = F,annotation_legend = F,
+               show_rownames = T,labels_col = c("NPCs D868D ", "Neu D868D","NPCs D868N","Neu D868N"),fontsize=20)
+h1
+png("/home/zaghi/SETBP1_epigenomics/pipeline/plots/heatmapEM_TF_cluster_no_up_in_neu_D868N.png",pointsize = 1,res=1200,height = 50,width = 20,
+    units = "cm")
+h1
+dev.off()
+
+to_H <- to_H %>% 
+  rownames_to_column() 
+
+to_H <- to_H %>% 
+  dplyr::rename(SYMBOL=1)
+
+
+RNA_seq <- read_tsv("/home/zaghi/Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/RNA_seq/Results_pipeline_hg38/normalized_counts.tsv") %>% # load RNA norm counts
+  dplyr::rename(SYMBOL=1)
+
+to_H_RNA <- inner_join(to_H,RNA_seq) %>% # join to find the TFs correspondent gene inside RNA-seq counts 
+  dplyr::mutate("NPCs D868D"=(NPCs_D868D_1+NPCs_D868D_2+NPCs_D868D_6)/3,
+                "NPCs D868N"=(NPCs_D868N_5+NPCs_D868N_7+NPCs_D868N_8)/3,
+                "Neu D868D"=(Neurons_D868D_1+Neurons_D868D_2+Neurons_D868D_3)/3,
+                "Neu D868N"=(Neurons_D868N_1+Neurons_D868N_2+Neurons_D868N_3)/3)
+
+metadata = data.frame(condition = names(to_H_RNA)[c(46:49)],
+                      samples = str_split_fixed(names(to_H_RNA)[c(46:49)], "_", 2)[,1],
+                      stringsAsFactors = T, row.names=names(to_H_RNA)[c(46:49)])
+
+suppressMessages(library(RColorBrewer))
+suppressMessages(library("viridis"))
+
+annotation_column <- metadata[,1:(dim(metadata)[2])]
+mycolors_s <- c("white", "white","white", "white"); names(mycolors_s) = levels(annotation_column$samples)
+mycolors_c <- c("#08519c", "#6baed6","#006d2c","#74c476"); names(mycolors_c) = levels(annotation_column$condition)
+ann_colors = list(condition=mycolors_c, samples=mycolors_s)
+crp <- colorRampPalette(c('white','red'))
+colors = crp(255)
+
+to_H_RNA <- to_H_RNA[,c(20,46:49)]
+
+
+rownames(to_H_RNA) <- to_H_RNA[,1]
+
+to_H_RNA$SYMBOL<- NULL
+
+to_H_RNA <- to_H_RNA[, c(1, 3, 2, 4)]
+
+colors=c("blue4","blue4","blue4","blue3","blue2","blue1","blue","dodgerblue4","dodgerblue3","dodgerblue2","dodgerblue1","dodgerblue","deepskyblue","skyblue",
+         "orangered","red","red1","red2","red3")
+
+bk <- c(0,50,75,100,125,150,175,200,225,250,300,350,600,700,1000,1500,2000,2500,3000)
+
+to_H_RNA_c <- to_H_RNA[h1$tree_row$order,]
+
+h2 <- pheatmap(as.matrix(to_H_RNA_c), annotation_col = annotation_column,border_color = "white",breaks=bk,cluster_cols = F,cluster_rows = F,
+               annotation_colors = ann_colors, col=colors, annotation_names_col = F,annotation_legend = F,
+               show_rownames = T,labels_col = c("NPCs D868D ","Neu D868D", "NPCs D868N","Neu D868N"),fontsize=20)
+h2
+png("/home/zaghi/SETBP1_epigenomics/pipeline/plots/heatmapEM_TF_cluster_no_up_in_neu_D868N_RNA_norm_counts.png",pointsize = 1,res=1200,height = 50,width = 20,
+    units = "cm")
+h2
+dev.off()
+
+
+#TFBS more accessible in Neu D868N Heatmaps ChromVar deviations and relative expression levels
+
+Neu_all_peaks_statistical_significance <- read_tsv("SETBP1_epigenomics/pipeline/ChromVar/Neu_all_peaks_statistical_significance_table") # Calculated in ChromVar.R script 
+
+
+to_H <- Neu_all_peaks_statistical_significance %>% 
+  dplyr::filter(Neu_D868N >= 0.5) %>% 
+  as.data.frame()
+
+metadata = data.frame(condition = names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)],
+                      samples = str_split_fixed(names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)], "_", 2)[,1],
+                      stringsAsFactors = T, row.names=names(Neu_all_peaks_statistical_significance)[c(4:5,12:13)])
+
+suppressMessages(library(RColorBrewer))
+suppressMessages(library("viridis"))
+
+annotation_column <- metadata[,1:(dim(metadata)[2])]
+mycolors_s <- c("white", "white"); names(mycolors_s) = levels(annotation_column$samples)
+mycolors_c <- c("#08519c", "#6baed6","#006d2c","#74c476"); names(mycolors_c) = levels(annotation_column$condition)
+ann_colors = list(condition=mycolors_c, samples=mycolors_s)
+
+TF_cluster_no_down <- to_H  %>% 
+  write_delim("SETBP1_epigenomics/pipeline/ChromVar/TF_cluster_no_down_in_neu",
+              delim="\t",col_names = T)
+
+to_H$Motif <- str_split_fixed(to_H$Motif, "_", 2)[,2]
+
+rownames(to_H) <- to_H[,1]
+
+to_H$Motif<- NULL
+
+to_H <- to_H[c(3:4,11:12)]
+
+to_H <- to_H[c(1:8,10:76),]
+
+to_H <- to_H[, c(1, 3, 2, 4)]
+to_H
+               
+library(ArchR)
+
+colors <- paletteContinuous(set = "solarExtra")
+
+h1 <- pheatmap(as.matrix(to_H), annotation_col = annotation_column,border_color = "white",cluster_cols = F,
+         annotation_colors = ann_colors, col=colors, annotation_names_col = F,annotation_legend = F,
+         show_rownames = T,labels_col = c("NPCs D868D ", "Neu D868D","NPCs D868N","Neu D868N"),fontsize=20)
+h1
+png("/home/zaghi/SETBP1_epigenomics/pipeline/plots/heatmapEM_TF_cluster_no_down_in_neu.png",pointsize = 1,res=1200,height = 50,width = 20,
+    units = "cm")
+h1
+dev.off()
+
+h1r <- h1$tree_row$order
+h1c <- h1$tree_col
+
+to_H <- to_H %>% 
+  rownames_to_column() 
+
+to_H <- to_H %>% 
+  dplyr::rename(SYMBOL=1)
+
+
+RNA_seq <- read_tsv("/home/zaghi/Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/RNA_seq/Results_pipeline_hg38/normalized_counts.tsv") %>% 
+  dplyr::rename(SYMBOL=1)
+
+to_H_RNA <- inner_join(to_H,RNA_seq) %>% 
+  dplyr::mutate("NPCs D868D"=(NPCs_D868D_1+NPCs_D868D_2+NPCs_D868D_6)/3,
+                "NPCs D868N"=(NPCs_D868N_5+NPCs_D868N_7+NPCs_D868N_8)/3,
+                "Neu D868D"=(Neurons_D868D_1+Neurons_D868D_2+Neurons_D868D_3)/3,
+                "Neu D868N"=(Neurons_D868N_1+Neurons_D868N_2+Neurons_D868N_3)/3)
+
+metadata = data.frame(condition = names(to_H_RNA)[c(31:34)],
+                      samples = str_split_fixed(names(to_H_RNA)[c(31:34)], "_", 2)[,1],
+                      stringsAsFactors = T, row.names=names(to_H_RNA)[c(31:34)])
+
+suppressMessages(library(RColorBrewer))
+suppressMessages(library("viridis"))
+
+annotation_column <- metadata[,1:(dim(metadata)[2])]
+mycolors_s <- c("white", "white","white", "white"); names(mycolors_s) = levels(annotation_column$samples)
+mycolors_c <- c("#08519c", "#6baed6","#006d2c","#74c476"); names(mycolors_c) = levels(annotation_column$condition)
+ann_colors = list(condition=mycolors_c, samples=mycolors_s)
+crp <- colorRampPalette(c('blue','white','red'))
+library(circlize)
+crp <- colorRampPalette(c('blue','white','red'))
+colors = crp(255)
+
+
+to_H_RNA <- to_H_RNA[,c(1,31:34)]
+
+to_H_RNA$SYMBOL<- NULL
+
+to_H_RNA <- to_H_RNA[, c(1, 3, 2, 4)]
+to_H_RNA
+
+missing <- anti_join
+
+to_H_RNA_c <- to_H_RNA[h1$tree_row$order,]
+
+colors=c("blue4","blue4","blue4","blue3","blue2","blue1","blue","dodgerblue4","dodgerblue3","dodgerblue2","dodgerblue1","dodgerblue","deepskyblue","skyblue",
+         "orangered","red","red1","red2","red3")
+
+bk <- c(0,50,75,100,125,150,175,200,225,250,300,350,600,700,1000,1500,2000,2500,3000)
+
+h2 <- pheatmap(as.matrix(to_H_RNA_c), annotation_col = annotation_column, border_color = "white", cluster_cols = F,cluster_rows = F,
+               annotation_colors = ann_colors, col=colors, annotation_names_col = F,annotation_legend = F,breaks = bk,
+               show_rownames = T,labels_col = c("NPCs D868D ","Neu D868D", "NPCs D868N","Neu D868N"),fontsize=20)
+h2
+
+png("/home/zaghi/SETBP1_epigenomics/pipeline/plots/heatmapEM_TF_cluster_no_down_in_neu_D868N_RNA_norm_counts.png",pointsize = 1,res=1200,height = 50,width = 20,
+    units = "cm")
+h2
+dev.off()
+  
+
+#Fig. Extended Data 4 g Distance-Interaction frequency relation in Hi-C neurons 
+
+#Extracting interaction frequency and distance relationship form HiC maps at 50kb resolution for chr3 
+
+bin_IF_Neu_D868D <- read_delim("~/Setbp1_Gdrive/setbp1/pipeline/annotations/mega (2f06dcec)/NPC_Neuron-SETBP1_D868D/straw_norm.tsv.gz",
+                               delim="\t",col_names = T) %>% 
+  dplyr::mutate(distance=abs(bin2_start-bin1_end))
+
+bin_IF_Neu_D868D_chr3 <- bin_IF_Neu_D868D %>% 
+  dplyr::filter(bin1_chr==c("chr3") & bin2_chr==c("chr3"))%>% 
+  dplyr::group_by(distance) %>% 
+  dplyr::summarise(IF=mean(IF))
+
+bin_IF_Neu_D868D_chr3$condition <- "Neu D868D"
+
+bin_IF_Neu_D868N <- read_delim("~/Setbp1_Gdrive/setbp1/pipeline/annotations/mega (2f06dcec)/NPC_Neuron-SETBP1_D868N/straw_norm.tsv.gz",
+                               delim="\t",col_names = T) %>% 
+  dplyr::mutate(distance=abs(bin2_start-bin1_end))
+
+bin_IF_Neu_D868N_chr3 <- bin_IF_Neu_D868N %>% 
+  dplyr::filter(bin1_chr==c("chr3") & bin2_chr==c("chr3"))%>% 
+  dplyr::group_by(distance) %>% 
+  dplyr::summarise(IF=mean(IF))
+
+bin_IF_Neu_D868N_chr3$condition <- "Neu D868N"
+
+ggplot(data=bin_IF_Neu_D868N_chr3, aes(x=distance, y=log2(IF), group=1)) +
+  geom_line()+ theme_classic()
+ggsave("SETBP1_epigenomics/pipeline/plots/distance_IF_D868N.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 200, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+#plot IF distance together 
+
+
+chr3 <- rbind.data.frame(bin_IF_Neu_D868D_chr3,bin_IF_Neu_D868N_chr3) %>% 
+  dplyr::filter(distance>=1000000) %>% 
+  dplyr::filter(distance<=10000000) %>% 
+  dplyr::mutate(distance=distance/1000000)
+
+
+chr3$IF <- rescale(chr3$IF, from = c(0, 70.46), to = c(0, 1))
+
+ggplot(data=chr3, aes(x=distance, y=log2(IF), group=condition, color=condition)) +
+  geom_line() +
+  scale_color_manual(values=c("#08519c","#6baed6"))+
+  theme_classic() +xlab('Distance (Mbp)') + 
+  ylab('Log2 (Interaction Frequency)')+                                      # Change decimal comma / point  
+  theme(panel.border = element_rect())+
+  theme_classic()+ theme(legend.position = "none")+
+  theme(axis.text.x = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.text.y = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.title.y = element_text(size = 22,family = "Arial"),
+        axis.title.x = element_text(size = 22,family = "Arial"),
+        axis.line = element_line(size = 1),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 1))
+
+ggsave("SETBP1_epigenomics/pipeline/plots/distance_IF_Neu_CHR3.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 130, height = 125, units = "mm", dpi = 300, limitsize = TRUE)
