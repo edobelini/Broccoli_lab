@@ -1335,3 +1335,136 @@ ggplot(data=chr3, aes(x=distance, y=log2(IF), group=condition, color=condition))
 
 ggsave("SETBP1_epigenomics/pipeline/plots/distance_IF_Neu_CHR3.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 130, height = 125, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+#Fig. Extended Data 4 h contact domains number and length in Neu 
+
+#Compartments boundaries coordinates Neu_D868D calculation 
+
+TAD_NEU_D868D <- read_delim("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Hi-C/hg38_HiC/Neu_D868D/mega/arrowhead/5000_blocks.bedpe",
+                            delim="\t", col_names = T) %>% 
+  dplyr::rename(chr=1,
+         start=2,
+         end=3)
+
+TAD_NEU_D868D <- TAD_NEU_D868D[-c(1),] %>% 
+  dplyr::select(chr,start,end) %>%
+  dplyr::mutate(end-start) %>% 
+  dplyr::rename(TAD_length=4)
+
+
+#Compartments boundaries coordinates Neu_D868N calculation
+
+TAD_NEU_D868N <- read_delim("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Hi-C/hg38_HiC/Neu_D868N/mega/arrowhead/5000_blocks.bedpe",
+                            delim="\t", col_names = T) %>% 
+  dplyr::rename(chr=1,
+                start=2,
+                end=3)
+
+TAD_NEU_D868N <- TAD_NEU_D868N[-c(1),] %>% 
+  dplyr::select(chr,start,end) %>%
+  dplyr::mutate(end-start) %>% 
+  dplyr::rename(TAD_length=4)
+
+TAD_NEU_D868N$condition <- "Neu D868N"
+
+
+#Compartment number plot Neu 
+
+genotype <- c("Neu D868D","Neu D868N")
+value <- c( 6319,
+            8571)
+TADs <- data.frame(genotype,value) 
+
+data1 <- TADs                                                 
+data1$genotype <- factor(data1$genotype,                                   
+                         levels = c("Neu D868D","Neu D868N"))
+
+ggplot(data1, aes(y=value, x=genotype, fill=genotype)) + 
+  geom_bar(stat="identity",width = 0.8,
+           size = 1,position = position_dodge(width = 0.2))+
+  xlab("")+
+  ylab("Contact Domain Number")+
+  scale_fill_manual(values = c("#006d2c","#74c476"))+
+  scale_color_manual(values=c("#006d2c","#74c476")) +
+  theme_classic()+
+  scale_y_continuous(expand = c(0,0)) +
+  theme(legend.position = "none")+
+  theme(axis.text.x = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.text.y = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.title.y = element_text(size = 22,family = "Arial"),
+        axis.line = element_line(size = 1),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 1))
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Compartments_number_Neu.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 150, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+#Compartment length plot Neu 
+
+TAD_length_NEU <- rbind.data.frame(TAD_NEU_D868D,TAD_NEU_D868N)
+
+
+ggplot(TAD_length_NEU) +
+  aes(x = condition, y = TAD_length, fill = condition, color = condition) +
+  geom_violin() +
+  scale_fill_manual(values = c("#08519c","#6baed6"))+
+  scale_color_manual(values=c("#08519c","#6baed6")) +
+  ggthemes::theme_base() +
+  xlab('') + 
+  ylab('Contact Domain Length (bp)')+                                      # Change decimal comma / point  
+  scale_y_continuous(labels = scales::comma_format(big.mark = ".",
+                                           decimal.mark = ","))+
+  theme(panel.border = element_rect())+
+  theme_classic()+ theme(legend.position = "none")+
+  theme(axis.text.x = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.text.y = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.title.y = element_text(size = 22,family = "Arial"),
+        axis.line = element_line(size = 1),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 1))+
+  stat_summary(fun.data = "mean_sdl", geom = "crossbar",
+               mult=1,fill="white",
+               colour = "black", width = 0.05) +
+  stat_compare_means(
+    label = "p.format",
+    method = "wilcox.test",
+    ref.group = "Neu D868D",
+    label.y =   #posizione p value
+  )
+  
+ggsave("SETBP1_epigenomics/pipeline/plots/Compartments_length_Neu.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 150, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
+
+
+#Fig. Extended Data 4 i Loop number in Neu 
+
+genotype <- c("Neu D868D","Neu D868N")
+value <- c( 17399,
+            23285)
+TADs <- data.frame(genotype,value) 
+
+data1 <- TADs                                                 
+data1$genotype <- factor(data1$genotype,                                   
+                         levels = c("Neu D868D","Neu D868N"))
+
+ggplot(data1, aes(y=value, x=genotype, fill=genotype)) + 
+  geom_bar(stat="identity",width = 0.8,
+           size = 1,position = position_dodge(width = 0.2))+
+  xlab("")+
+  ylab("Chromatin Loops Number")+
+  scale_fill_manual(values = c("#08519c","#6baed6"))+
+  scale_color_manual(values=c("#08519c","#6baed6")) +
+  theme_classic()+
+  scale_y_continuous(expand = c(0,0)) +
+  theme(legend.position = "none")+
+  theme(axis.text.x = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.text.y = element_text(size = 18,family = "Arial", colour = "black"),
+        axis.title.y = element_text(size = 22,family = "Arial"),
+        axis.line = element_line(size = 1),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 1))
+
+ggsave("SETBP1_epigenomics/pipeline/plots/Loops_number_Neu.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 150, height = 145, units = "mm", dpi = 300, limitsize = TRUE)
