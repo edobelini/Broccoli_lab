@@ -9,7 +9,7 @@
 </h3>
   </a>
   <p align="center">
-    Mattia Zaghi, Federica Banfi, Luca Massimino, Monica Volpin, Edoardo Bellini, Simone Brusco, Ivan Merelli, Cristiana Barone, Cristina Sironi, Michela Bruni, Giulia Fagnocchi, Linda Bossini, Luigi Lamparelli, Laura Pintado, Deborah D'Aliberti, Rocco Piazza, Luca Mologni, Gaia Colasante, Federica Ungaro, Francesco Ferrari, Jean-Michel Cioni, Emanuele Azzoni, Rocco Piazza, Eugenio Montini, Vania Broccoli and Alessandro Sessa
+    Mattia Zaghi, Federica Banfi, Luca Massimino, Monica Volpin, Edoardo Bellini, Simone Brusco, Ivan Merelli, Cristiana Barone, Cristina Sironi, Michela Bruni, Linda Bossini, Luigi Lamparelli, Laura Pintado, Deborah D'Aliberti, Rocco Piazza, Luca Mologni, Gaia Colasante, Federica Ungaro, Francesco Ferrari, Jean-Michel Cioni, Emanuele Azzoni, Rocco Piazza, Eugenio Montini, Vania Broccoli and Alessandro Sessa
   </p>
 </p>
 <p align="center">
@@ -41,14 +41,17 @@ In this work we described the effect of SET protein accumulation on chromatin re
 
 <!-- Pipelines -->
 ## Pipelines
-In this folder the snakemake pipelines used to analyzed all the epigenomic data (ATAC, ChIP-seq, Hi-C) are deposited. Within the folder are present:
+In this folder the snakemake pipelines, bash and R script used to analyzed all the epigenomic/trascriptomic data (ATAC, ChIP-seq, Hi-C, RNA-seq, scMultiome) are deposited. Within the folder are present:
+
 * `.sk` files, that contain all rules sequence.
 
 * `.yaml` file, that must be edit according to organism and statistics and user needs.
 
+* `.R` files, custom R script use to analyze a specific dataset.
+
 <!-- Figures -->
 ## Figures
-In scripts folder are present all the costum snakemake and R script used to generate plots and figures. Each figure folder contain the code used to generate it and its related supplementary figure.
+In Figures folder are present all the costum snakemake and R script used to generate plots and figures. Each figure folder contain the code used to generate it and its related supplementary figure.
 
 <!-- CONTACT -->
 ## Contacts

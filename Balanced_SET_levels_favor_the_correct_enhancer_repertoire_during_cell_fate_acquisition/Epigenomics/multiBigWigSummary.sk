@@ -5,8 +5,8 @@ configfile: "config.yaml"
 path = "logs_slurm"
 
 # ------ sample handling ----------
-SAMPLES = "".split()
-REGIONS="".split()
+SAMPLES = "".split() #BigWig files needed to calculate coverage 
+REGIONS="".split() #Bed files of regions where to calculate the coverage of different samples 
 
 RUNID = config["RUN_ID"]
 

@@ -38,7 +38,7 @@ rule Plot_profile_automax:
         /beegfs/scratch/ric.broccoli/ric.broccoli/anaconda3/envs/deeptools/bin/plotProfile --matrixFile {input.Compute_Matrix} --outFileName {output.profile_automax} --dpi 300 --averageType {wildcards.stat} --plotWidth 7.5 --perGroup --colors '#404040' '#BABABA'  --samplesLabel '' '' --startLabel "5'" --endLabel "3'" --regionsLabel '{wildcards.chip} in {wildcards.bed}'
         """
         
-rule Plot_heatmap_kmeans:
+rule Plot_heatmap_kmeans: #this is the code used to obtain clusters of differential chromatin accessibility in different samples and cell types
     input:
         Compute_Matrix='/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/Compute_Matrix/Peak_centered/Compute_Matrix/Peak_centered/{chip}_in_{bed}_{stat}_Compute_Matrix'
     output:

@@ -18,11 +18,11 @@ RUNID = config["RUN_ID"]
 
 rule all:
     input:
-        expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_merge.bed", sample=SAMPLE,omic=OMIC,myrun=RUNID) 
+        expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_merge.bed", sample=SAMPLE,omic=OMIC,myrun=RUNID) # Final  Merged regions 
         
 rule Sort:
     input:
-        peaks= expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_{num}.bed", sample=SAMPLE,omic=OMIC, num=NUM,myrun=RUNID)
+        peaks= expand("/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_{num}.bed", sample=SAMPLE,omic=OMIC, num=NUM,myrun=RUNID) # single list peaks to merge in a single object
     output:
         cat= temp('/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_cat.bed'),
         sort= temp('/beegfs/scratch/ric.broccoli/ric.broccoli/{myrun}/fastq/trimmed/trimmomatic/mapped/bowtie2/sorted/samtools/dedup/filter/peaks/regions/{sample}_{omic}_sort.bed'),
