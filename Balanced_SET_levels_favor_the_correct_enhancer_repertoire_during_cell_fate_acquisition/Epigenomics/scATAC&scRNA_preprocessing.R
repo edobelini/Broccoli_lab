@@ -29,6 +29,19 @@ Multi.object[["percent.mt"]] <- PercentageFeatureSet(Multi.object, pattern = "^m
 VlnPlot(Multi.object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, log = F, group.by = "Condition")+
   ggsave("plots/vio_plot.png", dpi = 330, scale = 0.8, width = 12, height = 5)
 
+min_nFeature_RNA = 200
+max_nFeature_RNA = 4000
+max_percent_MT = 10
+
+  # calculate %mt features
+Multi.object[["percent.mt"]] <- PercentageFeatureSet(Multi.object, pattern = "^mt-")
+  # show violin plots to set quality threshold
+print(VlnPlot(Multi.object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), pt.size = 1))
+  # subset cells matching quality requirment
+Multi.object <-  subset(Multi.object, subset = nFeature_RNA > min_nFeature_RNA & nFeature_RNA < max_nFeature_RNA & percent.mt < max_percent_MT)
+  # Violin plots after filtering
+print(VlnPlot(Multi.object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), pt.size = 1))
+  # Data normalization
 Multi.object <- NormalizeData(Multi.object, normalization.method = "LogNormalize", scale.factor = 10000) %>%
   FindVariableFeatures(selection.method = "vst", nfeatures = 2000)
 
@@ -58,3 +71,50 @@ p1 = DimPlot(Multi.object, reduction = "umap", label = F, cols = mycol, pt.size 
         panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
   labs(x = "UMAP 1", y = "UMAP 2")+
   ggtitle("UMAP 1:15, FindNeighbors 1:20")
+
+
+
+
+#scATAC data preprocessing 
+
+#create Arrow files for ArchR preprocessing 
+
+ArrowFiles <- createArrowFiles(
+  inputFiles = c("Documents/scATAC_Multiome_Bam/Embryo_Ctrl/atac_fragments.tsv.gz",
+                 "Documents/scATAC_Multiome_Bam/Embryo_Mut/atac_fragments.tsv.gz",
+                 "Documents/scATAC_Multiome_Bam/P2_Ctrl/atac_fragments.tsv.gz",
+                 "Documents/scATAC_Multiome_Bam/P2_Mut/atac_fragments.tsv.gz"),
+  sampleNames = c("embryo_ctrl","embryo_mut","P2_ctrl","P2_mut"),
+  minTSS = 0, #We do not use filter here becasue we filter based on scRNA cells
+  minFrags = 1, #We do not use filter here becasue we filter based on scRNA cells 
+  maxFrags = 10000000, #We do not use filter here becasue we filter based on scRNA cells
+  addTileMat = TRUE,
+  addGeneScoreMat = TRUE
+)
+
+
+#Create ArrowProject
+
+
+
+scATAC_Multiome <- ArchRProject(
+  ArrowFiles = ArrowFiles, 
+  outputDirectory = "Documents/scATAC_Multiome_Bam/Table_heatmap/",
+  copyArrows = F 
+)
+
+#add RNA matrix to ArchRProject
+
+seRNA <- import10xFeatureMatrix(
+  input = c("Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Multiome_SETBP1/ATAC_CRE_Plus_embrioni/Embryo_Mut/outs/filtered_feature_bc_matrix.h5",
+            "Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Multiome_SETBP1/ATAC__CRE_Minus_embrioni/Embryo_Ctrl/outs/filtered_feature_bc_matrix.h5",
+            "Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Multiome_SETBP1/ATAC_ctrl_neonati/P2_Ctrl/outs/filtered_feature_bc_matrix.h5",
+            "Share_HSR/Ric.Broccoli/zaghi.mattia/SETBP1_epigenomics/Multiome_SETBP1/ATAC_mutato_neonati/P2_Mut/outs/filtered_feature_bc_matrix.h5"),
+  names = c("embryo_ctrl","embryo_mut","P2_ctrl","P2_mut"))
+
+
+
+
+seRNAcombined<-cbind(assay(seRNA[[1]]), assay(seRNA[[2]]), assay(seRNA[[3]]), assay(seRNA[[4]]))
+
+seRNA <- SummarizedExperiment(assays=list(counts=seRNAcombined), rowRanges= rowRanges(seRNA[[1]])) 
