@@ -1,0 +1,17 @@
+IDS="".split() # Counts tables to annotate 
+PEAKS="".split() # Regions lists to use to perform annotation
+
+rule all:
+    input:
+        expand("/home/zaghi/Cut_Tag_Astro/multiBigwigSummary/{id}_table_annotate_DGE", id=IDS)
+        
+rule Sort:
+    input:
+        multiBigWigSummary= expand("{id}", id=IDS),
+        regions= expand("{peaks}.bed", peaks=PEAKS)
+    output:
+         annotate= expand("{id}_annotate", id=IDS)
+    shell:
+        """
+        bedtools annotate -i {input.multiBigWigSummary} -files {input.regions} > {output.annotate}
+        
