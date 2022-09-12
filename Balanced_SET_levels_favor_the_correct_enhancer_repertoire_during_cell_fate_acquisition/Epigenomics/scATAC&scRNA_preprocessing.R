@@ -261,12 +261,58 @@ scATAC_Multiome@embeddings@listData$UMAP_2 <- UMAP_2 #add new UMAP coordinates t
 
 #Calling peaks inside each cluster for ctrl 
 
-Clusters <- as.data.frame(table(scATAC_Multiome@cellColData@listData[["Clusters"]]))
+Clusters <- as.data.frame(table(scATAC_Multiome@cellColData@listData[["Clusters"]])) #create a string with all the clusters
+
+for (i in 1:length(Clusters)){
+  
+  idxSample <- BiocGenerics::which(file$Sample %in% c("","")) #Select the cells associated to the samples on which the peakcalling is performed 
+  cellsSample <- file$cellNames[idxSample]
+  file <- file[cellsSample, ]
+
+  idxClusters <- BiocGenerics::which(scATAC_Multiome$Clusters %in% paste("", clusters[i],sep = "")) #Select the cells associated to the clusters on which the peakcalling is performed 
+  cellsClusters <- scATAC_Multiome$cellNames[idxClusters]
+  file <- scATAC_Multiome[cellsClusters, ]
 
 
+  file <- addReproduciblePeakSet(
+    ArchRProj = file, 
+    groupBy = "Clusters", 
+    pathToMacs2 = "/home/zaghi/miniconda3/envs/macs2/bin/macs2",
+    threads = 11,
+  )
 
+file <- addPeakMatrix(file,threads = 24, force=T)
+  
+  peakset <- getPeakSet(file) 
+  
+  peakset <- data.frame(chr=peakset@seqnames,start=peakset@ranges,cluster=peakset@elementMetadata@listData[["GroupReplicate"]],idx=peakset@elementMetadata@listData[["idx"]],
+                        peakset@elementMetadata@listData[["peakType"]], distanceToTSS=peakset@elementMetadata@listData[["distToTSS"]]) %>% #extract the specific peak set relative to each cluster
+    dplyr::rename(chr=1,
+                  start=2,
+                  end=3,
+                  width=4,
+                  cluster=5,
+                  replicate=6,
+                  idx=7,
+                  feature=8,
+                  distanceToTSS=9) %>% 
+    write_tsv("Peak2GeneLinks/clusters/")
+}
 
+# Create BigWig tracks for each clusters and sample 
 
+Clusters <- as.data.frame(table(scATAC_Multiome@cellColData@listData[["Clusters"]])) #create a string with all the clusters
 
+for (i in 1:length(Clusters)){
 
+  idxSample <- BiocGenerics::which(file$Sample %in% c("","")) #Select the cells associated to the samples on which the peakcalling is performed 
+  cellsSample <- file$cellNames[idxSample]
+  file <- file[cellsSample, ]
+
+  idxClusters <- BiocGenerics::which(scATAC_Multiome$Clusters %in% paste("", clusters[i],sep = "")) #Select the cells associated to the clusters on which the peakcalling is performed 
+  cellsClusters <- scATAC_Multiome$cellNames[idxClusters]
+  file <- scATAC_Multiome[cellsClusters, ]]
+
+  file <- addGroupCoverages(ArchRProj = file, groupBy = "Clusters",
+                            threads = getArchRThreads())
 
