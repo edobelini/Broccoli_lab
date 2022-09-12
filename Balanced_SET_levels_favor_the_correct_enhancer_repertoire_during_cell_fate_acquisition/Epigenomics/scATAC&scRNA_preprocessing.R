@@ -117,4 +117,156 @@ seRNA <- import10xFeatureMatrix(
 
 seRNAcombined<-cbind(assay(seRNA[[1]]), assay(seRNA[[2]]), assay(seRNA[[3]]), assay(seRNA[[4]]))
 
-seRNA <- SummarizedExperiment(assays=list(counts=seRNAcombined), rowRanges= rowRanges(seRNA[[1]])) 
+seRNA <- SummarizedExperiment(assays=list(counts=seRNAcombined), rowRanges= rowRanges(seRNA[[1]]))
+
+#Filtering scATAC cells based on scRNA cells 
+
+scRNA <- readRDS("Documents/scRNA_Multiome/scRNA_multiome.rds")
+
+barcodes <- as.data.frame(scRNA@meta.data) %>% 
+  rename(barcode_scRNA=7) %>% unique()
+
+length(unique(scATAC_Multiome_cells$barcode_scATAC))
+barcodes$sample_number <- str_split_fixed(barcodes$barcode_scRNA, pattern = "-", n = 2)[,2]
+
+barcodes$barcode <- str_split_fixed(barcodes$barcode_scRNA, pattern = "-", n = 2)[,1]
+
+barcodes_scATAC <- as.data.frame(scATAC_Multiome@cellColData@rownames) %>% 
+  rename(barcode_scATAC=1) 
+
+barcodes_scATAC$sample_number <- str_split_fixed(barcodes_scATAC$barcode_scATAC, pattern = "-", n = 2)[,2]
+barcodes_scATAC$sample <- str_split_fixed(barcodes_scATAC$barcode_scATAC, pattern = "#", n = 2)[,1]
+barcodes_scATAC$barcode <- str_split_fixed(barcodes_scATAC$barcode_scATAC, pattern = "#", n = 2)[,2]
+barcodes_scATAC$barcode <- str_split_fixed(barcodes_scATAC$barcode, pattern = "-", n = 2)[,1]
+
+barcodes_scATAC <- barcodes_scATAC %>% 
+  rename(sample_numer_ATAC=2)
+
+barcodes_scATAC$sample[barcodes_scATAC$sample == "embryo_mut"] <- "1"
+barcodes_scATAC$sample[barcodes_scATAC$sample == "embryo_ctrl"] <- "2"
+barcodes_scATAC$sample[barcodes_scATAC$sample == "P2_ctrl"]<- "3"
+barcodes_scATAC$sample[barcodes_scATAC$sample == "P2_mut"]<- "4"
+
+barcodes_scATAC$barcode <- paste(barcodes_scATAC$barcode,sep = "-",barcodes_scATAC$sample)
+
+barcodes$barcode <- NULL
+
+barcodes <- barcodes %>% 
+  rename(barcode=7)
+
+barcodes_all <- inner_join(barcodes,barcodes_scATAC)
+
+barcodes_conflict <- barcodes_all$barcode_scATAC #This are the same cells that were obtained from the scRNA cells
+
+#filtering cells from scRNA into ArchR scMultiome object 
+
+idxcells <- BiocGenerics::which(scATAC_Multiome$cellNames %in% c(barcodes_conflict))
+cells <- scATAC_Multiome$cellNames[idxcells]
+scATAC_Multiome <- scATAC_Multiome[cells, ]
+
+scATAC_Multiome@cellColData$Sample
+
+#Calculate dimensionality reduction with LSI, clustering and UMAP based on scATAC
+
+#Dimensionality reduction with LSI
+
+scATAC_Multiome <- addIterativeLSI(
+  ArchRProj = scATAC_Multiome,
+  useMatrix = "TileMatrix", 
+  name = "IterativeLSI", 
+  iterations = 2, 
+  clusterParams = list( #See Seurat::FindClusters
+    resolution = c(0.2), 
+    n.start = 10
+  ), 
+  varFeatures = 25000, 
+  dimsToUse = 1:30
+)
+
+#clustering with Seurat
+
+scATAC_Multiome<- addClusters(
+  input = scATAC_Multiome,
+  reducedDims = "IterativeLSI",
+  method = "Seurat",
+  name = "Clusters",
+  resolution = 0.5
+)
+
+#UMAP calculation  
+
+scATAC_Multiome <- addUMAP(
+  ArchRProj = scATAC_Multiome, 
+  reducedDims = "IterativeLSI", 
+  name = "UMAP", 
+  nNeighbors = 30, 
+  minDist = 0.5, 
+  metric = "cosine"
+)
+
+
+#Add scRNA UMAP coordinates to ArchR 
+
+Umap <- as.data.frame(scRNA@reductions[["umap"]]@cell.embeddings) %>% 
+  rownames_to_column() %>% 
+  rename(barcode=1)
+
+barcodes_all <- inner_join(barcodes_all,Umap)
+
+
+rownames(barcodes_all) <- barcodes_all[,13]
+
+barcodes_all <- barcodes_all[rownames(scATAC_Multiome_cells), ]
+
+Clusters_RNA <- barcodes_all %>% 
+  select(Label_cluster)
+
+scATAC_Multiome@cellColData$Clusters_RNA <- Clusters_RNA
+  
+rownames(UMAP_2) <- UMAP_2[,1]
+
+UMAP_RNA <- barcodes_all %>% 
+  select(barcode_scATAC,UMAP_1,UMAP_2) %>% 
+  rename(rowname=1)
+
+UMAP <- as.data.frame(scATAC_Multiome@embeddings@listData$UMAP$df)
+
+
+UMAP <- UMAP %>% 
+  rownames_to_column()
+
+UMAP_2 <- inner_join(UMAP_RNA,UMAP) %>% 
+  rename(IterativeLSI_2_UMAP_Dimension_1=2,IterativeLSI_2_UMAP_Dimension_2=3) %>% 
+  select(rowname,IterativeLSI_2_UMAP_Dimension_1=2,IterativeLSI_2_UMAP_Dimension_2=3)
+
+rownames(UMAP_2) <- UMAP_2[,1]
+
+UMAP_2$rowname <- NULL
+
+UMAP_2 <- UMAP_2[order(rownames(scATAC_Multiome_cells)),]
+
+
+UMAP_2 <- UMAP_2[rownames(scATAC_Multiome_cells), ]
+
+UMAP_2 <- rownames_to_column(UMAP_2)
+
+df <- DataFrame(row.names=UMAP_2$rowname, "custom#UMAP1" = UMAP_2$IterativeLSI_2_UMAP_Dimension_1, "custom#UMAP2" =  UMAP_2$IterativeLSI_2_UMAP_Dimension_2, check.names = FALSE)
+scATAC_Multiome@embeddings$customUMAP <- SimpleList(df = df, params = list())
+
+UMAP_RNA$barcode_scATAC <- NULL
+
+UMAP_RNA <- list(df=UMAP_RNA)
+
+scATAC_Multiome@embeddings@listData$UMAP_2 <- UMAP_2 #add new UMAP coordinates to ArchR project
+
+#Calling peaks inside each cluster for ctrl 
+
+Clusters <- as.data.frame(table(scATAC_Multiome@cellColData@listData[["Clusters"]]))
+
+
+
+
+
+
+
+
