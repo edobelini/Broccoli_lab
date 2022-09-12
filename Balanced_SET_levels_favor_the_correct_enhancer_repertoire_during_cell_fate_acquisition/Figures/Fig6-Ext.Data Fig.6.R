@@ -71,6 +71,57 @@ p1 = DimPlot(Multihome, reduction = "umap", label = F, pt.size = 0.3, cols = col
 ggsave("SETBP1_epigenomics/pipeline/plots/UMAP_no_labels_ATAC.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 200, height = 200, units = "mm", dpi = 300, limitsize = TRUE)
 
-#Fig.6 RNA velocity UMAP and heatmap 
+#Fig.6 g Chromatin accessibility dynamics in pseudotime of neural differentiation 
 
+# Calculate pseudotime trajectory of neural differentiation in control and mutant 
+
+scATAC_Multiome <- loadArchRProject("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR/")
+
+idxPass <- which(scATAC_Multiome$Sample %in% c("embryo_ctrl","P2_ctrl"))
+cellsPass <- scATAC_Multiome$cellNames[idxPass]
+scATAC_Multiome_ctrl <- scATAC_Multiome[cellsPass, ] #create multiome object with ctrl cells only 
+
+idxPass <- which(scATAC_Multiome$Sample %in% c("embryo_mut","P2_mut"))
+cellsPass <- scATAC_Multiome$cellNames[idxPass]
+scATAC_Multiome_mut <- scATAC_Multiome[cellsPass, ] #create multiome object with mut cells only 
+
+#Load all the peaks associated with the differentiation trajectory in one list
+
+peaks1 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/ctrl/AP_RGC") 
+
+peaks2 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/ctrl/INP") 
+
+peaks3<- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/ctrl/ExN_DL") 
+
+peaks4 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/mut/AP_RGC") 
+
+peaks5 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/mut/INP") 
+
+peaks6 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/mut/ExN_DL") 
+
+peak <- rbind.data.frame(peaks1,peaks2,peaks3,
+                         peaks4,peaks5,peaks6) %>% 
+  makeGRangesFromDataFrame() %>% 
+  IRanges::reduce() #create a unique peak list 
+
+scATAC_Multiome_ctrl <- addPeakSet(
+  ArchRProj =  scATAC_Multiome_ctrl,
+  peakSet = peak,
+  genomeAnnotation = getGenomeAnnotation(scATAC_Multiome),
+  force = TRUE
+)
+
+scATAC_Multiome_ctrl <- addPeakMatrix(scATAC_Multiome_ctrl, force=T) #Add peakset to ArchR object 
+
+scATAC_Multiome_mut <- addPeakSet(
+  ArchRProj =  scATAC_Multiome_mut,
+  peakSet = peak,
+  genomeAnnotation = getGenomeAnnotation(scATAC_Multiome),
+  force = TRUE
+)
+
+scATAC_Multiome_mut <- addPeakMatrix(scATAC_Multiome_mut, force=T) #Add peakset to ArchR object 
+
+
+trajectory_neu <- c("AP_RGC", "INP", "ExN_DL")
 
