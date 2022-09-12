@@ -57,22 +57,50 @@ Multi.object <- RunPCA(Multi.object, features = VariableFeatures(object = Multi.
     FindClusters(Multi.object, resolution = 0.5) %>%
     RunUMAP(Multi.object, dims = 1:15)
 
-colors <- kelly(11)
-colors[1] <- "brown" 
+#Find clusters markers to use to perform manual ispection of clusters
 
-p1 = DimPlot(Multi.object, reduction = "umap", label = F, cols = mycol, pt.size = 1.5) +
-  theme(plot.title = element_text(color="black", size=10, face="bold.italic"),
-        axis.text.x = element_text(angle = 90, face = "bold", color = "black", size=20, hjust =1),
-        axis.title.x = element_text(face = "bold", color = "black", size = 20),
-        axis.text.y = element_text(angle = 0, face = "bold", color = "black", size=20),
-        axis.title.y = element_text(face = "bold", color = "black", size = 0),
-        legend.text = element_text(face = "bold", color = "black", size = 20),
-        legend.position="top",
-        panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
-  labs(x = "UMAP 1", y = "UMAP 2")+
-  ggtitle("UMAP 1:15, FindNeighbors 1:20")
+cluster.markers <- FindAllMarkers(Multi.object,
+                                 thresh.use = thresh.use,
+                                 test.use = test.use,
+                                 min.pct = min.pct,
+                                 min.diff.pct = min.diff.pct,
+                                 only.pos = LogFC.onlypos) %>%
+                    as.data.frame() %>%
+                    filter(p_val_adj < p_val_adj_T)
 
+top100 <- cluster.markers %>%
+group_by(cluster) %>%
+top_n(n = 100, wt = avg_log2FC) %>%
+as.data.frame()
+rownames(top100) <- top100$gene
 
+MG_list <- list()
+
+for (i in 1:length(unique(Idents(Multi.object)))) {
+  MG_list[[i]] <- filter(top100, top100$cluster == i)
+  names(MG_list)[i] <- paste("Cluster", i, sep = "_")
+}
+
+openxlsx::write.xlsx(MG_list, "Marker_Genes_100.xlsx")
+
+new.cluster.name <- c("ExN_UL", "OPCs_Oligo", "Astro", "IN", "Astro", "INP", "AP_RGC", "Late_Prog", "ExN_DL", 
+  "Microglia", "ExN_UL", "Endothelium", "Endothelium", "Astro", "ExN_DL", "Late_Prog") #rename clusters after manueal ispection
+
+#Caculate Degs intraclusters
+
+DEGS <- list()
+Idents(Multi.object) <- Multi.object$Genotype
+
+for (i in as.vector(unique(Multi.object$Label_cluster))) {
+  filt <-  subset(Multi.object, subset = Label_cluster %in% i)
+  DGE <- FindMarkers(filt, ident.1 = "mut" , ident.2 = "ctrl", 
+                     logfc.threshold = 0.25, test.use = "wilcox")
+  DEGS[[i]] <- as.data.frame(DGE)
+  DEGS[[i]]$SYMBOL <- rownames(DEGS[[i]])
+  names(DEGS)[i] <- paste("DEGS", i, sep = "_")
+}
+
+openxlsx::write.xlsx(MG_list, "DEGS_intra_cluster.xlsx")
 
 
 #scATAC data preprocessing 
@@ -317,6 +345,8 @@ for (i in 1:length(Clusters)){
                             threads = getArchRThreads())
 
 #Differential enhancer usage 
+
+#Load peaks associated to each genotype/cluster
 
 files <- list.files("/home/zaghi/Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/ctrl/", full.names = T)
 WT_peaks <- lapply(files, read.table,  header = T)
