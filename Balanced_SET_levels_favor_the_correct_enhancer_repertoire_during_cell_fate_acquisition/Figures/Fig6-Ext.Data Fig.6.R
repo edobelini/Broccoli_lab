@@ -70,3 +70,7 @@ p1 = DimPlot(Multihome, reduction = "umap", label = F, pt.size = 0.3, cols = col
   theme(legend.text = element_text(color = "black", size  12)) #plot ATAC UMAP
 ggsave("SETBP1_epigenomics/pipeline/plots/UMAP_no_labels_ATAC.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 200, height = 200, units = "mm", dpi = 300, limitsize = TRUE)
+
+#Fig.6 RNA velocity UMAP and heatmap 
+
+
