@@ -21,17 +21,17 @@ colors[1] <- "brown"
 p1 = DimPlot(Multihome, reduction = "umap", label = F, pt.size = 0.3, cols = colors,group.by="Label_cluster") + 
   theme_void()+
   theme(legend.text = element_text(color = "black", size  12)) #plot RNA UMAP
-ggsave("SETBP1_epigenomics/pipeline/plots/UMAP_no_labels_ATAC.png", plot = last_plot(), device = NULL, path = NULL,
+ggsave("SETBP1_epigenomics/pipeline/plots/UMAP_no_labels_RNA.png", plot = last_plot(), device = NULL, path = NULL,
        scale = 1, width = 200, height = 200, units = "mm", dpi = 300, limitsize = TRUE)
 
 
 #Add scATAC umap coordinates to Seurat object to plot A
 
-scATAC_Multiome <- loadArchRProject("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/") #
+scATAC_Multiome <- loadArchRProject("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/") # Load ArchR project containing scATAC data
 
 barcodes_scATAC <- as.data.frame(scATAC_Multiome@embeddings@listData[["UMAP"]]@listData[["df"]]) %>% 
   rownames_to_column() %>% 
-  rename(barcode_scATAC=1)  #
+  rename(barcode_scATAC=1)  #extract Barcodes associated with each cells and the UMAP coordinates 
 
 barcodes_scATAC$sample_number <- str_split_fixed(barcodes_scATAC$barcode_scATAC, pattern = "-", n = 2)[,2]
 barcodes_scATAC$sample <- str_split_fixed(barcodes_scATAC$barcode_scATAC, pattern = "#", n = 2)[,1]
@@ -57,10 +57,16 @@ barcodes_scATAC <- barcodes_scATAC %>%
                 UMAP_2=2)
 
 barcodes_scATAC <- barcodes_scATAC[order(rownames(barcodes)),]
-barcodes_scATAC <- barcodes_scATAC[rownames(Multihome@meta.data),]
+barcodes_scATAC <- barcodes_scATAC[rownames(scRNA@meta.data),] #order the Barcode of scATAC with the same order of scRNA dataset 
 
-Multihome[["cloupe"]] <- CreateDimReducObject(embeddings = Multihome[["umap"]]@cell.embeddings, assay = DefaultAssay(Multihome),
-                                             key = "cloupe_")
+scRNA[["cloupe"]] <- CreateDimReducObject(embeddings = scRNA[["umap"]]@cell.embeddings, assay = DefaultAssay(scRNA),
+                                          key = "cloupe_") #Insert scATAC UMAP coordinates in Seurat object 
 
-Multihome[["cloupe"]]@cell.embeddings[,1] <- barcodes_scATAC[,1]
-Multihome[["cloupe"]]@cell.embeddings[,2] <- barcodes_scATAC[,2]
+scRNA[["cloupe"]]@cell.embeddings[,1] <- barcodes_scATAC[,1]
+scRNA[["cloupe"]]@cell.embeddings[,2] <- barcodes_scATAC[,2]
+
+p1 = DimPlot(Multihome, reduction = "umap", label = F, pt.size = 0.3, cols = colors,group.by="Label_cluster") + 
+  theme_void()+
+  theme(legend.text = element_text(color = "black", size  12)) #plot ATAC UMAP
+ggsave("SETBP1_epigenomics/pipeline/plots/UMAP_no_labels_ATAC.png", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 200, height = 200, units = "mm", dpi = 300, limitsize = TRUE)
