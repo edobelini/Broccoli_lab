@@ -9,7 +9,7 @@
 </h3>
   </a>
   <p align="center">
-    Mattia Zaghi, Federica Banfi, Luca Massimino, Monica Volpin, Edoardo Bellini, Simone Brusco, Ivan Merelli, Cristiana Barone, Cristina Sironi, Michela Bruni, Linda Bossini, Luigi Lamparelli, Laura Pintado, Deborah D'Aliberti, Rocco Piazza, Luca Mologni, Gaia Colasante, Federica Ungaro, Francesco Ferrari, Jean-Michel Cioni, Emanuele Azzoni, Rocco Piazza, Eugenio Montini, Vania Broccoli and Alessandro Sessa
+    Mattia Zaghi<sup>1 *</sup>, Federica Banfi<sup>1</sup>, Luca Massimino<sup>1</sup>, Monica Volpin<sup>1</sup>, Edoardo Bellini<sup>1</sup>, Simone Brusco<sup>1</sup>, Ivan Merelli<sup>1</sup>, Cristiana Barone<sup>1</sup>, Cristina Sironi<sup>1</sup>, Michela Bruni<sup>1</sup>, Linda Bossini<sup>1</sup>, Luigi Lamparelli<sup>1</sup>, Laura Pintado<sup>1</sup>, Deborah D'Aliberti<sup>1</sup>, Luca Mologni<sup>1</sup>, Gaia Colasante<sup>1</sup>, Federica Ungaro<sup>1</sup>, Francesco Ferrari<sup>1</sup>, Jean-Michel Cioni<sup>1</sup>, Emanuele Azzoni<sup>1</sup>, Rocco Piazza<sup>1</sup>, Eugenio Montini<sup>1</sup>, Vania Broccoli<sup>1</sup> and Alessandro Sessa<sup>1</sup>
   </p>
 </p>
 <p align="center">
@@ -52,7 +52,7 @@ In this folder the snakemake pipelines, bash and R script used to analyzed all t
 
 <!-- Figures -->
 ## Figures
-In Figures folder are present all the costum snakemake and R script used to generate plots and figures. Each figure folder contain the code used to generate it and its related supplementary figure.
+In Figures folder are present all the costum snakemake and `.R` script used to generate plots and figures. Each figure folder contain the code used to generate it and its related supplementary figure.
 
 <!-- CONTACT -->
 ## Contacts
@@ -77,4 +77,3 @@ Alessandro Sessa - <sessa.alessandro@hsr.it>
 [license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
