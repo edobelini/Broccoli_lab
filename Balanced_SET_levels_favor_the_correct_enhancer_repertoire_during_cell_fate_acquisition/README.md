@@ -50,6 +50,8 @@ In this folder the snakemake pipelines, bash and R script used to analyzed all t
 
 * `.R` files, custom R script use to analyze a specific dataset.
 
+* `sh` files, bash script use to launch specific softwares.
+
 <!-- Figures -->
 ## Figures
 In Figures folder are present all the costum snakemake and `.R` script used to generate plots and figures. Each figure folder contain the code used to generate it and its related supplementary figure.
