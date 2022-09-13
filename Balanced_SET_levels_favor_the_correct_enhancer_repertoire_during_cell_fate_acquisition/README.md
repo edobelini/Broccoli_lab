@@ -4,7 +4,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href=>
+  <a href= "https://www.biorxiv.org/content/10.1101/2022.09.12.507599v1">
   <h3 align="center"> Balanced SET levels favor the correct enhancer repertoire during cell fate acquisition
 </h3>
   </a>
