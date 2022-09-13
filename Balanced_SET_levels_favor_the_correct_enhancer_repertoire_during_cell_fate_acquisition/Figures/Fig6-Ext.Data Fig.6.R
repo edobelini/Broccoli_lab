@@ -91,7 +91,7 @@ peaks1 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/
 
 peaks2 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/ctrl/INP") 
 
-peaks3<- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/ctrl/ExN_DL") 
+peaks3 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/ctrl/ExN_DL") 
 
 peaks4 <- read_tsv("Documents/scATAC_Multiome_Bam/scATAC_multiome_ArchR_correct/PeakCalls/clusters/da_edo/mut/AP_RGC") 
 
@@ -124,4 +124,87 @@ scATAC_Multiome_mut <- addPeakMatrix(scATAC_Multiome_mut, force=T) #Add peakset 
 
 
 trajectory_neu <- c("AP_RGC", "INP", "ExN_DL")
+
+scATAC_Multiome_ctrl <- addTrajectory( #addtrajectory calculation to ctrl cells
+  ArchRProj = scATAC_Multiome_ctrl, 
+  name = "Neurons", 
+  groupBy = "Clusters",
+  trajectory = trajectory_neu, 
+  embedding = "UMAP_2", 
+  force = TRUE,
+  reducedDims =NULL
+)
+
+
+scATAC_Multiome_mut <- addTrajectory( #addtrajectory calculation to mut cells
+  ArchRProj = scATAC_Multiome_mut, 
+  name = "Neurons", 
+  groupBy = "Clusters",
+  trajectory = trajectory_neu, 
+  embedding = "UMAP_2", 
+  force = TRUE,
+  reducedDims =NULL
+)
+
+trajPM_ctrl  <- getTrajectory(ArchRProj = scATAC_Multiome_ctrl, name = "Neurons", useMatrix = "PeakMatrix", log2Norm = TRUE) #calculate peaks open during diff. in ctrl.
+
+trajPM_mut <- getTrajectory(ArchRProj = scATAC_Multiome_mut, name = "Neurons", useMatrix = "PeakMatrix", log2Norm = TRUE, ) #calculate peaks open during diff. in mut.
+
+p_trajPM_mut <-  as.data.frame(p_trajPM_mut) %>% 
+  rownames_to_column()
+
+p_trajPM_ctrl <-  as.data.frame(p_trajPM_ctrl)%>% 
+  rownames_to_column()
+
+colors <- paletteContinuous(set = "solarExtra")
+
+metadata = data.frame(pseudotime = 1:100,
+                      stringsAsFactors = T, 
+                      row.names=names(p_trajPM_ctrl))
+
+suppressMessages(library(RColorBrewer))
+suppressMessages(library("viridis"))
+
+mycolors_s <- paletteContinuous(set = "horizonExtra", n = 100); names(mycolors_s) = unique(metadata$pseudotime)
+ann_colors = list(pseudotime=mycolors_s)
+
+p1 <- pheatmap::pheatmap(p_trajPM_ctrl,cluster_rows = F,cluster_cols = F,
+                         col=colors,show_rownames = F,
+                         show_colnames = F,
+                         annotation_col = metadata,
+                         annotation_colors = ann_colors) #plot heatmap of peaks in control during differentiation
+
+p2 <- pheatmap::pheatmap(p_trajPM_mut,cluster_rows = F,cluster_cols = F,
+                         col=colors,show_rownames = F,
+                         show_colnames = F,
+                         annotation_col = metadata,
+                         annotation_colors = ann_colors) #plot heatmap of peaks in mutant during differentiation
+
+png("SETBP1_epigenomics/pipeline/plots/p_trajPM_ctrl.png",pointsize = 1,res=1200,height = 20,width = 10,
+    units = "cm")
+p1
+dev.off()
+
+png("SETBP1_epigenomics/pipeline/plots/p_trajPM_mut.png",pointsize = 1,res=1200,height = 20,width = 10,
+    units = "cm")
+p2
+dev.off()
+
+
+p_trajPM_mut_order <- p_trajPM_mut[rownames(p_trajPM_ctrl),] #order peaks of mut in the same order of ctrl.
+
+
+ p1 <- pheatmap::pheatmap(p_trajPM_mut_order ,cluster_rows = F,cluster_cols = F,
+                         col=colors,show_rownames = F,
+                         show_colnames = F,
+                         annotation_col = metadata,
+                         annotation_colors = ann_colors)
+
+png("SETBP1_epigenomics/pipeline/plots/p_trajPM_mut_order.png",pointsize = 1,res=1200,height = 20,width = 10,
+    units = "cm")
+p1
+dev.off()
+
+
+#Fig.6 h Expression plots during pseudotime of genes 
 
