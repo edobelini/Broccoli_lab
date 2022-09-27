@@ -460,5 +460,141 @@ openxlsx::write.xlsx(to_write, "Peaks_common_by_gene.xlsx", overwrite = F)
 
 
 #Fig.6 k pseudotime during neural differentiation 
+library(Seurat)
+library(monocle3)
+library(SeuratWrappers)    
 
 
+cds_sort <- subset(Multihome, subset=Label_cluster %in% c("AP_RGC", "INP", "ExN_DL", "ExN_UL"))
+cds <- as.cell_data_set(cds_sort, cell_metadata=as.data.frame(cds_sort@meta.data))
+cds <- preprocess_cds(cds, num_dim = 10, norm_method = "log")
+cds <- align_cds(cds)
+
+cds <- reduce_dimension(cds, reduction_method = "UMAP")
+cds <- cluster_cells(cds = cds, reduction_method = "UMAP")
+cds <- learn_graph(cds)
+
+cds <- order_cells(cds, reduction_method = "UMAP")
+cds_pr_test_res <- graph_test(cds, neighbor_graph="principal_graph", cores=20)
+
+
+traj_Cond <- plot_cells(cds, color_cells_by = "Time_point", norm_method = "log", label_cell_groups = FALSE)+
+  theme(plot.title = element_text(color="black", size=10, face="bold.italic"),
+        axis.text.x = element_text(angle = 90, face = "bold", color = "black", size=8, hjust =1), 
+        axis.title.x = element_text(face = "bold", color = "black", size = 8),
+        axis.text.y = element_text(angle = 0, face = "bold", color = "black", size=8),
+        axis.title.y = element_text(face = "bold", color = "black", size = 8),
+        legend.text = element_text(face = "bold", color = "black", size = 10),
+        legend.position="top",
+        panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
+  labs(x = "UMAP 1", y = "UMAP 2")+
+  ggtitle("ALL")
+traj_mut <- plot_cells(cds, color_cells_by = "Genotype", group_cells_by = "cluster", norm_method = "log", label_cell_groups = FALSE)+
+  theme(plot.title = element_text(color="black", size=10, face="bold.italic"),
+        axis.text.x = element_text(angle = 90, face = "bold", color = "black", size=8, hjust =1), 
+        axis.title.x = element_text(face = "bold", color = "black", size = 8),
+        axis.text.y = element_text(angle = 0, face = "bold", color = "black", size=8),
+        axis.title.y = element_text(face = "bold", color = "black", size = 8),
+        legend.text = element_text(face = "bold", color = "black", size = 10),
+        legend.position="top",
+        panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
+  labs(x = "UMAP 1", y = "UMAP 2")+
+  ggtitle("ALL")
+
+traj_time <- plot_cells(cds, color_cells_by = "Label_cluster", group_cells_by = "cluster", norm_method = "log", label_cell_groups = FALSE)+
+  theme(plot.title = element_text(color="black", size=10, face="bold.italic"),
+        axis.text.x = element_text(angle = 90, face = "bold", color = "black", size=8, hjust =1), 
+        axis.title.x = element_text(face = "bold", color = "black", size = 8),
+        axis.text.y = element_text(angle = 0, face = "bold", color = "black", size=8),
+        axis.title.y = element_text(face = "bold", color = "black", size = 8),
+        legend.text = element_text(face = "bold", color = "black", size = 10),
+        legend.position="top",
+        panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
+  labs(x = "UMAP 1", y = "UMAP 2")+
+  ggtitle("ALL")
+
+Multihome <- AddMetaData(
+  object = Multihome,
+  metadata = Multihome.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "Pseudotime_ctrl")
+
+Multihome <- AddMetaData(
+  object = Multihome,
+  metadata = Multihome.cds@principal_graph_aux@listData$UMAP$pseudotime,
+  col.name = "Pseudotime_mut")
+
+
+library(scales)
+library(ggridges)
+library(viridis)
+library(hrbrthemes)
+library(easyGgplot2)
+
+ctrl_Time$Pseudotime_ctrl_scaled <- rescale(multiome$Pseudotime_ctrl, to = c(0, 100))
+mut_Time$Pseudotime_mut_scaled <- rescale(mut_Time$Pseudotime_mut, to = c(0, 100))
+ctrl_Time <- ctrl_Time[c(2, 4)]
+ctrl_Time$Condition <- "ctrl"
+names(ctrl_Time)[2] <- "Pseudotime"
+mut_Time <- mut_Time[c(2, 4)]
+mut_Time$Condition <- "mut"
+names(mut_Time)[2] <- "Pseudotime"
+
+pseudo <- rbind(ctrl_Time, mut_Time)
+pseudo["Label_cluster"][pseudo["Label_cluster"] == "ExN_UL"] <- "ExN"
+pseudo["Label_cluster"][pseudo["Label_cluster"] == "ExN_DL"] <- "ExN"
+pseudo["Label_cluster"][pseudo["Label_cluster"] == "ExN_L1"] <- "ExN"
+
+a <- ggplot2.density(data=filter(pseudo, pseudo$Label_cluster %in% c("ExN", "INP" ,"AP_RGC")), 
+                     xName='Pseudotime', groupName='Label_cluster', legendPosition="top",
+                     faceting=TRUE, facetingVarNames="Condition", densityFill = 'Label_cluster', 
+                     fillGroupDensity = T, colorGroupDensityLine = T, 
+                     groupColors = c("#BE0032","cornflowerblue" ,"#F3C300"))+
+  theme(plot.title = element_text(color="black", size=20, face="bold.italic", hjust = 0),
+        axis.text.x = element_text(angle = 45, face = "bold", color = "black", size=20, hjust =1), 
+        axis.title.x = element_text(face = "bold", color = "black", size = 20),
+        axis.text.y = element_text(angle = 0, face = "bold", color = "black", size=20),
+        axis.title.y = element_text(face = "bold", color = "black", size = 20, vjust = 0),
+        legend.text = element_text(face = "bold", color = "black", size = 20),
+        legend.position="top",
+        panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
+  labs(x = "", y = "% of Cell")
+
+
+
+b <- ggplot2.density(data=filter(pseudo, pseudo$Label_cluster %in% c("ExN", "INP" ,"AP_RGC")), 
+                     xName='Pseudotime', groupName='Condition', legendPosition="top",
+                     faceting=TRUE, facetingVarNames="Condition", densityFill = 'Label_cluster', 
+                     fillGroupDensity = T, colorGroupDensityLine = T, 
+                     groupColors = okabe(8)[6:7])+
+  theme(plot.title = element_text(color="black", size=5, face="bold.italic"),
+        axis.text.x = element_text(angle = 45, face = "bold", color = "black", size=20, hjust =1), 
+        axis.title.x = element_text(face = "bold", color = "black", size = 20),
+        axis.text.y = element_text(angle = 0, face = "bold", color = "black", size=20),
+        axis.title.y = element_text(face = "bold", color = "black", size = 20, vjust = 0),
+        legend.text = element_text(face = "bold", color = "black", size = 20),
+        legend.position="top",
+        panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
+  labs(x = "Pseudotime", y = "% of Cell")
+
+
+
+c <- ggplot2.density(data=filter(pseudo, pseudo$Label_cluster %in% c("INP", "ExN", "Late_Prog", "AP_RGC", "IN", "ExN_L1", "Astro")),
+                     xName='Pseudotime', groupName='Label_cluster', legendPosition="top",
+                     faceting=TRUE, facetingVarNames="Condition", densityFill = 'Label_cluster', 
+                     fillGroupDensity = T, colorGroupDensityLine = T, 
+                     groupColors = watlington(length(unique(pseudo$Label_cluster))))+
+  theme(plot.title = element_text(color="black", size=20, face="bold.italic", hjust = 0),
+        axis.text.x = element_text(angle = 45, face = "bold", color = "black", size=20, hjust =1), 
+        axis.title.x = element_text(face = "bold", color = "black", size = 20),
+        axis.text.y = element_text(angle = 0, face = "bold", color = "black", size=20),
+        axis.title.y = element_text(face = "bold", color = "black", size = 20, vjust = 0),
+        legend.text = element_text(face = "bold", color = "black", size = 20),
+        legend.position="top",
+        panel.background = element_rect(fill = "white",colour = "black", size = 1, linetype = "solid")) +
+  labs(x = "", y = "% of Cell")+
+  ggtitle("Pseudotime distribution of lineage ExN -> INP -> AP_RGC")
+
+
+png("ExN_INP_AP_RGC_in_pseudotime.png", res = 330, height = 20, width = 30, units = "in")
+c/a/b
+dev.off()
