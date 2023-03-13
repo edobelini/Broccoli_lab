@@ -1,0 +1,5 @@
+sample_id,molecule_h5
+IL10,/beegfs/scratch/ric.broccoli/ric.broccoli/sc_Bido_Il10/IL10/outs/molecule_info.h5
+snca,/beegfs/scratch/ric.broccoli/ric.broccoli/sc_Bido_Il10/snca/outs/molecule_info.h5
+snca_il10,/beegfs/scratch/ric.broccoli/ric.broccoli/sc_Bido_Il10/snca_il10/outs/molecule_info.h5
+WT,/beegfs/scratch/ric.broccoli/ric.broccoli/sc_Bido_Il10/WT/outs/molecule_info.h5
